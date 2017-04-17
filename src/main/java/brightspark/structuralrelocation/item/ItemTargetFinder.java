@@ -2,10 +2,10 @@ package brightspark.structuralrelocation.item;
 
 import brightspark.structuralrelocation.Location;
 import brightspark.structuralrelocation.block.BlockSingleTeleporter;
+import brightspark.structuralrelocation.util.CommonUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
@@ -26,9 +26,7 @@ public class ItemTargetFinder extends ItemBasic
 
     public static void setTarget(ItemStack stack, Location location)
     {
-        NBTTagCompound tag = stack.getTagCompound();
-        if(tag == null) tag = new NBTTagCompound();
-        stack.setTagCompound(location.saveToNBT(tag));
+        stack.setTagInfo("location", location.serializeNBT());
     }
 
     public static void setTarget(ItemStack stack, int currentDimensionId, BlockPos pos)
@@ -39,27 +37,18 @@ public class ItemTargetFinder extends ItemBasic
     public static Location getTarget(ItemStack stack)
     {
         NBTTagCompound tag = stack.getTagCompound();
-        return tag == null ? null : new Location(tag);
+        if(tag == null) return null;
+        NBTTagCompound locTag = tag.getCompoundTag("location");
+        return locTag.getSize() == 0 ? null : new Location(locTag);
     }
 
     public static void clearTarget(ItemStack stack)
     {
-        NBTTagCompound tag = stack.getTagCompound();
-        if(tag != null)
-        {
-            tag.removeTag("position");
-            tag.removeTag("dimension");
-        }
+        CommonUtils.clearNBTKeys(stack, "location");
     }
 
     /**
      * This is called when the item is used, before the block is activated.
-     * @param stack The Item Stack
-     * @param player The Player that used the item
-     * @param world The Current World
-     * @param pos Target position
-     * @param side The side of the target hit
-     * @param hand Which hand the item is being held in.
      * @return Return PASS to allow vanilla handling, any other to skip normal code.
      */
     @Override
@@ -68,7 +57,7 @@ public class ItemTargetFinder extends ItemBasic
         if(!(world.getBlockState(pos).getBlock() instanceof BlockSingleTeleporter))
         {
             setTarget(stack, player.dimension, player.isSneaking() ? pos : pos.offset(side));
-            player.addChatMessage(new TextComponentString("Set Target"));
+            if(world.isRemote) player.addChatMessage(new TextComponentString("Set Target"));
             return EnumActionResult.SUCCESS;
         }
         return EnumActionResult.PASS;
@@ -80,6 +69,7 @@ public class ItemTargetFinder extends ItemBasic
         if(playerIn.isSneaking())
         {
             clearTarget(itemStackIn);
+            if(worldIn.isRemote) playerIn.addChatMessage(new TextComponentString("Target Cleared"));
             return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, itemStackIn);
         }
         return new ActionResult<ItemStack>(EnumActionResult.PASS, itemStackIn);

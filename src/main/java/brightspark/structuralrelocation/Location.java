@@ -23,20 +23,16 @@ public class Location implements INBTSerializable<NBTTagCompound>
     @Override
     public NBTTagCompound serializeNBT()
     {
-        return saveToNBT(new NBTTagCompound());
-    }
-
-    public NBTTagCompound saveToNBT(NBTTagCompound tag)
-    {
+        NBTTagCompound tag = new NBTTagCompound();
         tag.setInteger("dimension", dimensionId);
         tag.setLong("position", position.toLong());
         return tag;
     }
 
     @Override
-    public void deserializeNBT(NBTTagCompound nbt)
+    public void deserializeNBT(NBTTagCompound tag)
     {
-        dimensionId = nbt.getInteger("dimension");
-        position = BlockPos.fromLong(nbt.getLong("position"));
+        dimensionId = tag.getInteger("dimension");
+        position = BlockPos.fromLong(tag.getLong("position"));
     }
 }
