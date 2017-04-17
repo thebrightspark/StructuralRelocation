@@ -1,5 +1,6 @@
 package brightspark.structuralrelocation;
 
+import brightspark.structuralrelocation.init.SRBlocks;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -46,6 +47,7 @@ public class StructuralRelocation
     {
         //Initialize GUIs, tile entities, recipies, event handlers here
 
+        SRBlocks.regTileEntities();
     }
 
     @Mod.EventHandler
