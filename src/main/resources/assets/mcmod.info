@@ -1,0 +1,24 @@
+{
+    "modListVersion": 2,
+    "modList":
+    [
+        {
+          "modid": "structuralrelocation",
+          "name": "Structural Relocation",
+          "description": "A mod to teleport blocks, or areas of blocks to a new location.",
+          "version": "${version}",
+          "mcversion": "${mcversion}",
+          "url": "",
+          "updateUrl": "",
+          "authorList": ["bright_spark"],
+          "credits": "",
+          "logoFile": "",
+          "screenshots": [],
+          "parent": "",
+          "dependants": [],
+          "dependencies": [],
+          "requiredMods": [],
+          "useDependencyInformation": true
+        }
+    ]
+}
