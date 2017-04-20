@@ -1,8 +1,10 @@
 package brightspark.structuralrelocation.item;
 
 import brightspark.structuralrelocation.Location;
+import brightspark.structuralrelocation.block.BlockAreaTeleporter;
 import brightspark.structuralrelocation.block.BlockSingleTeleporter;
 import brightspark.structuralrelocation.util.CommonUtils;
+import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -54,7 +56,8 @@ public class ItemTargetFinder extends ItemBasic
     @Override
     public EnumActionResult onItemUseFirst(ItemStack stack, EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ, EnumHand hand)
     {
-        if(!(world.getBlockState(pos).getBlock() instanceof BlockSingleTeleporter))
+        Block block = world.getBlockState(pos).getBlock();
+        if(!(block instanceof BlockSingleTeleporter) && !(block instanceof BlockAreaTeleporter))
         {
             setTarget(stack, player.dimension, player.isSneaking() ? pos : pos.offset(side));
             if(world.isRemote) player.addChatMessage(new TextComponentString("Set Target"));

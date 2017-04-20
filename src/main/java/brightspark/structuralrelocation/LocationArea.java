@@ -32,6 +32,26 @@ public class LocationArea implements INBTSerializable<NBTTagCompound>
         return new BlockPos(x, y, z);
     }
 
+    /**
+     * Gets the position where the X, Y and Z are at their largest within the area.
+     */
+    public BlockPos getEndPoint()
+    {
+        int x = Math.max(pos1.getX(), pos2.getX());
+        int y = Math.max(pos1.getY(), pos2.getY());
+        int z = Math.max(pos1.getZ(), pos2.getZ());
+        return new BlockPos(x, y, z);
+    }
+
+    /**
+     * Gets the a position which represents the size of the area.
+     * It's basically the end point minus the start point.
+     */
+    public BlockPos getRelativeEndPoint()
+    {
+        return getEndPoint().subtract(getStartingPoint());
+    }
+
     @Override
     public NBTTagCompound serializeNBT()
     {

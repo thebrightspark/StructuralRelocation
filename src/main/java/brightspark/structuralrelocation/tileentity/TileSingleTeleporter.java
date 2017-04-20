@@ -5,6 +5,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.fluids.IFluidBlock;
 
 public class TileSingleTeleporter extends TileEntity
 {
@@ -12,12 +13,17 @@ public class TileSingleTeleporter extends TileEntity
 
     public TileSingleTeleporter() {}
 
+    public boolean canTeleport()
+    {
+        IBlockState state = worldObj.getBlockState(pos.up());
+        return target != null && state.getMaterial() != Material.AIR && !(state.getBlock() instanceof IFluidBlock);
+    }
+
     public void teleport()
     {
         //Called from the block when right clicked
-        if(worldObj.isRemote) return;
+        if(worldObj.isRemote || !canTeleport()) return;
         IBlockState state = worldObj.getBlockState(pos.up());
-        if(state.getMaterial() == Material.AIR || target == null) return;
         WorldServer server = worldObj.getMinecraftServer().worldServerForDimension(target.dimensionId);
         server.setBlockState(target.position, state);
         worldObj.setBlockToAir(pos.up());

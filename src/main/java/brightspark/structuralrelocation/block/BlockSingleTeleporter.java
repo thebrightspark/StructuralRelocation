@@ -32,23 +32,26 @@ public class BlockSingleTeleporter extends AbstractBlockContainer
     @Override
     public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, @Nullable ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ)
     {
-        if(world.isRemote) return true;
         TileEntity te = world.getTileEntity(pos);
         if(te instanceof TileSingleTeleporter)
         {
+            TileSingleTeleporter teleporter = (TileSingleTeleporter) te;
             if(heldItem != null && heldItem.getItem() instanceof ItemTargetFinder)
             {
                 Location target = ItemTargetFinder.getTarget(heldItem);
                 if(target != null)
                 {
-                    ((TileSingleTeleporter) te).setTarget(target);
-                    player.addChatMessage(new TextComponentString("Dimension ID: " + target.dimensionId + "   Position: " + target.position.toString()));
+                    teleporter.setTarget(target);
+                    if(world.isRemote)
+                        player.addChatMessage(new TextComponentString("Target set!\n" +
+                            "Dimension ID: " + target.dimensionId + "   Position: " + target.position.toString()));
                 }
             }
-            else if(!player.isSneaking())
+            else if(!player.isSneaking() && teleporter.canTeleport())
             {
-                player.addChatMessage(new TextComponentString("Teleporting block..."));
-                ((TileSingleTeleporter) te).teleport();
+                //Start teleportation
+                if(world.isRemote) player.addChatMessage(new TextComponentString("Teleporting block..."));
+                teleporter.teleport();
             }
         }
         return true;
