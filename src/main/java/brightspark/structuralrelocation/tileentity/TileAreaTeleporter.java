@@ -15,7 +15,7 @@ import java.util.Iterator;
 /**
  * Created by Mark on 17/04/2017.
  */
-public class TileAreaTeleporter extends TileEntity implements ITickable
+public class TileAreaTeleporter extends TileEntity implements ITickable, ITeleporter
 {
     private LocationArea toMove;
     private Location target;
@@ -33,36 +33,44 @@ public class TileAreaTeleporter extends TileEntity implements ITickable
         if(target != null) this.target = target;
     }
 
-    public boolean canTeleport()
-    {
-        return toMove != null && target != null && curBlock == null;
-    }
-
     private boolean isAreaClear(BlockPos pos1, BlockPos pos2)
     {
         Iterator<BlockPos> positions = BlockPos.getAllInBox(pos1, pos2).iterator();
         while(positions.hasNext())
-            if(worldObj.isAirBlock(positions.next()))
+            if(!worldObj.isAirBlock(positions.next()))
                 return false;
         return true;
     }
 
+    @Override
     public void teleport(EntityPlayer player)
     {
         //Called from the block when right clicked
         if(worldObj.isRemote || toMove == null || target == null || curBlock != null)
             return;
 
-        //TODO: Check that the target area will not intersect with the area to move
+        BlockPos destinationStart = target.position;
+        BlockPos destinationEnd = destinationStart.add(toMove.getRelativeEndPoint());
+
+        //COMMENTED OUT: I don't think I actually need to check intersection? Just so long as the destination area is clear.
+        //Check that the target area will not intersect with the area to move
+        /*
+        AxisAlignedBB selection = new AxisAlignedBB(toMove.pos1, toMove.pos2);
+        AxisAlignedBB destination = new AxisAlignedBB(destinationStart, destinationEnd);
+        if(selection.intersectsWith(destination))
+        {
+            player.addChatMessage(new TextComponentString("Area to be moved must not intersect the destination area!"));
+            return;
+        }
+        */
 
         //Check that the target area is completely clear
-        BlockPos start = target.position.add(toMove.getStartingPoint());
-        BlockPos end = target.position.add(toMove.getEndPoint());
-        if(!isAreaClear(start, end))
+        //TODO: Check more precisely if the blocks can fit at the destination rather than just making sure the area is completely clear?
+        if(!isAreaClear(destinationStart, destinationEnd))
         {
             player.addChatMessage(new TextComponentString("Target area is not clear!\n" +
-                    "Position 1: " + start.toString() + "\n" +
-                    "Position 2: " + end.toString()));
+                    "Position 1: " + destinationStart.toString() + "\n" +
+                    "Position 2: " + destinationEnd.toString()));
             return;
         }
 
@@ -70,6 +78,8 @@ public class TileAreaTeleporter extends TileEntity implements ITickable
         curBlock = new BlockPos(0, 0, 0);
         targetRelMax = toMove.getRelativeEndPoint();
         toMoveMin = toMove.getStartingPoint();
+
+        player.addChatMessage(new TextComponentString("Teleporting blocks..."));
     }
 
     @Override
@@ -105,8 +115,9 @@ public class TileAreaTeleporter extends TileEntity implements ITickable
             }
 
             curBlock = nextPos == null ? null : new BlockPos(nextPos);
+            toMovePos = curBlock == null ? null : toMoveMin.add(curBlock);
         }
-        //Skip air blocks
-        while(curBlock != null && server.isAirBlock(toMoveMin.add(curBlock)));
+        //Skip air and unbreakable blocks
+        while(curBlock != null && (server.isAirBlock(toMovePos) || server.getBlockState(toMovePos).getBlockHardness(server, toMovePos) < 0));
     }
 }

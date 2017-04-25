@@ -7,10 +7,12 @@ import brightspark.structuralrelocation.block.BlockSingleTeleporter;
 import brightspark.structuralrelocation.tileentity.TileAreaTeleporter;
 import brightspark.structuralrelocation.tileentity.TileSingleTeleporter;
 import net.minecraft.block.Block;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagInt;
+import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
@@ -100,12 +102,21 @@ public class ItemSelector extends ItemBasic
     @Override
     public EnumActionResult onItemUseFirst(ItemStack stack, EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ, EnumHand hand)
     {
+        if(world.isRemote)
+        {
+            if(player instanceof EntityPlayerSP)
+                //Send a packet to process this on the server, because MC won't do it if I return anything other than PASS
+                ((EntityPlayerSP) player).connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(pos, side, hand, hitX, hitY, hitZ));
+            return EnumActionResult.SUCCESS;
+        }
+
         TileEntity te = world.getTileEntity(pos);
         boolean hasTarget = getTarget(stack) != null;
         boolean hasArea = getArea(stack) != null;
         boolean flag = false;
         if((hasTarget || hasArea) && te != null)
         {
+            //Set target/area in block
             switch(getMode(stack))
             {
                 case AREA:
@@ -114,8 +125,7 @@ public class ItemSelector extends ItemBasic
                     flag = true;
                     if(te instanceof TileAreaTeleporter)
                         ((TileAreaTeleporter) te).setAreaToMove(getArea(stack));
-                    if(world.isRemote)
-                        player.addChatMessage(new TextComponentString("Teleporter Area Set!"));
+                    player.addChatMessage(new TextComponentString("Teleporter Area Set!"));
                     break;
                 case SINGLE:
                     //Set target
@@ -125,14 +135,13 @@ public class ItemSelector extends ItemBasic
                         ((TileSingleTeleporter) te).setTarget(getTarget(stack));
                     if(te instanceof TileAreaTeleporter)
                         ((TileAreaTeleporter) te).setTarget(getTarget(stack));
-                    if(world.isRemote)
-                        player.addChatMessage(new TextComponentString("Teleporter Target Set!"));
+                    player.addChatMessage(new TextComponentString("Teleporter Target Set!"));
             }
         }
 
         if(!flag)
         {
-            //Set target/area location
+            //Set target/area location in item
             Block block = world.getBlockState(pos).getBlock();
             if(!(block instanceof BlockSingleTeleporter) && !(block instanceof BlockAreaTeleporter))
             {
@@ -142,35 +151,34 @@ public class ItemSelector extends ItemBasic
                     case SINGLE:
                         //Set target
                         setTarget(stack, new Location(player.dimension, posToSave));
-                        if(world.isRemote) player.addChatMessage(new TextComponentString("Set Target"));
+                        player.addChatMessage(new TextComponentString("Set Target"));
                         break;
                     case AREA:
                         if(areaLoc1 == null)
                         {
                             //Set the first location
                             areaLoc1 = new Location(player.dimension, posToSave);
-                            if(world.isRemote) player.addChatMessage(new TextComponentString("Position 1 set!"));
+                            player.addChatMessage(new TextComponentString("Position 1 set!"));
                         }
                         else
                         {
                             if(areaLoc1.dimensionId != player.dimension)
                             {
                                 //Trying to set 2nd position in a different dimension
-                                if(world.isRemote) player.addChatMessage(new TextComponentString("Both positions must be in the same dimension!"));
+                                player.addChatMessage(new TextComponentString("Both positions must be in the same dimension!"));
                             }
                             else
                             {
                                 //Set the second position and complete the area
                                 setArea(stack, new LocationArea(areaLoc1.dimensionId, areaLoc1.position, posToSave));
-                                if(world.isRemote) player.addChatMessage(new TextComponentString("Position 2 set!"));
+                                player.addChatMessage(new TextComponentString("Position 2 set!"));
                             }
                             areaLoc1 = null;
                         }
                 }
-                return EnumActionResult.SUCCESS;
             }
         }
-        return EnumActionResult.PASS;
+        return EnumActionResult.SUCCESS;
     }
 
     @Override
