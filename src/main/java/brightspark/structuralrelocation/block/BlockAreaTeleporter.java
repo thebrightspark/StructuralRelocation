@@ -1,9 +1,5 @@
 package brightspark.structuralrelocation.block;
 
-import brightspark.structuralrelocation.Location;
-import brightspark.structuralrelocation.LocationArea;
-import brightspark.structuralrelocation.item.ItemAreaFinder;
-import brightspark.structuralrelocation.item.ItemTargetFinder;
 import brightspark.structuralrelocation.tileentity.TileAreaTeleporter;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -35,43 +31,11 @@ public class BlockAreaTeleporter extends AbstractBlockContainer
     public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, @Nullable ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ)
     {
         TileEntity te = world.getTileEntity(pos);
-        if(te instanceof TileAreaTeleporter)
+        if(te instanceof TileAreaTeleporter && !player.isSneaking() && ((TileAreaTeleporter) te).canTeleport())
         {
-            TileAreaTeleporter teleporter = (TileAreaTeleporter) te;
-            if(heldItem != null)
-            {
-                if(heldItem.getItem() instanceof ItemAreaFinder)
-                {
-                    //Set Area
-                    LocationArea area = ItemAreaFinder.getArea(heldItem);
-                    if(area != null)
-                    {
-                        teleporter.setAreaToMove(area);
-                        if(world.isRemote)
-                            player.addChatMessage(new TextComponentString("Area set!\n" +
-                                    "Position 1: " + area.pos1.toString() + "\n" +
-                                    "Position 2: " + area.pos2.toString()));
-                    }
-                }
-                else if(heldItem.getItem() instanceof ItemTargetFinder)
-                {
-                    //Set Target
-                    Location target = ItemTargetFinder.getTarget(heldItem);
-                    if(target != null)
-                    {
-                        teleporter.setTarget(target);
-                        if(world.isRemote)
-                            player.addChatMessage(new TextComponentString("Target set!\n" +
-                                    "Dimension ID: " + target.dimensionId + "   Position: " + target.position.toString()));
-                    }
-                }
-            }
-            else if(!player.isSneaking() && teleporter.canTeleport())
-            {
-                //Start teleportation
-                if(world.isRemote) player.addChatMessage(new TextComponentString("Teleporting blocks..."));
-                teleporter.teleport();
-            }
+            //Start teleportation
+            if(world.isRemote) player.addChatMessage(new TextComponentString("Teleporting blocks..."));
+            ((TileAreaTeleporter) te).teleport(player);
         }
         return true;
     }

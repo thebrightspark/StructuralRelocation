@@ -1,7 +1,5 @@
 package brightspark.structuralrelocation.block;
 
-import brightspark.structuralrelocation.Location;
-import brightspark.structuralrelocation.item.ItemTargetFinder;
 import brightspark.structuralrelocation.tileentity.TileSingleTeleporter;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -33,26 +31,11 @@ public class BlockSingleTeleporter extends AbstractBlockContainer
     public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, @Nullable ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ)
     {
         TileEntity te = world.getTileEntity(pos);
-        if(te instanceof TileSingleTeleporter)
+        if(te instanceof TileSingleTeleporter && !player.isSneaking() && ((TileSingleTeleporter) te).canTeleport())
         {
-            TileSingleTeleporter teleporter = (TileSingleTeleporter) te;
-            if(heldItem != null && heldItem.getItem() instanceof ItemTargetFinder)
-            {
-                Location target = ItemTargetFinder.getTarget(heldItem);
-                if(target != null)
-                {
-                    teleporter.setTarget(target);
-                    if(world.isRemote)
-                        player.addChatMessage(new TextComponentString("Target set!\n" +
-                            "Dimension ID: " + target.dimensionId + "   Position: " + target.position.toString()));
-                }
-            }
-            else if(!player.isSneaking() && teleporter.canTeleport())
-            {
-                //Start teleportation
-                if(world.isRemote) player.addChatMessage(new TextComponentString("Teleporting block..."));
-                teleporter.teleport();
-            }
+            //Start teleportation
+            if(world.isRemote) player.addChatMessage(new TextComponentString("Teleporting block..."));
+            ((TileSingleTeleporter) te).teleport();
         }
         return true;
     }

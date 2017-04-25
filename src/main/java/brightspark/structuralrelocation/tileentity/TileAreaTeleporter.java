@@ -3,10 +3,14 @@ package brightspark.structuralrelocation.tileentity;
 import brightspark.structuralrelocation.Location;
 import brightspark.structuralrelocation.LocationArea;
 import brightspark.structuralrelocation.util.LogHelper;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.WorldServer;
+
+import java.util.Iterator;
 
 /**
  * Created by Mark on 17/04/2017.
@@ -21,27 +25,46 @@ public class TileAreaTeleporter extends TileEntity implements ITickable
 
     public void setAreaToMove(LocationArea area)
     {
-        toMove = area;
+        if(area != null) toMove = area;
     }
 
     public void setTarget(Location target)
     {
-        this.target = target;
+        if(target != null) this.target = target;
     }
 
     public boolean canTeleport()
     {
-        return toMove != null && target != null;
+        return toMove != null && target != null && curBlock == null;
     }
 
-    public void teleport()
+    private boolean isAreaClear(BlockPos pos1, BlockPos pos2)
+    {
+        Iterator<BlockPos> positions = BlockPos.getAllInBox(pos1, pos2).iterator();
+        while(positions.hasNext())
+            if(worldObj.isAirBlock(positions.next()))
+                return false;
+        return true;
+    }
+
+    public void teleport(EntityPlayer player)
     {
         //Called from the block when right clicked
         if(worldObj.isRemote || toMove == null || target == null || curBlock != null)
             return;
 
         //TODO: Check that the target area will not intersect with the area to move
-        //TODO: Check that the target area is completely clear
+
+        //Check that the target area is completely clear
+        BlockPos start = target.position.add(toMove.getStartingPoint());
+        BlockPos end = target.position.add(toMove.getEndPoint());
+        if(!isAreaClear(start, end))
+        {
+            player.addChatMessage(new TextComponentString("Target area is not clear!\n" +
+                    "Position 1: " + start.toString() + "\n" +
+                    "Position 2: " + end.toString()));
+            return;
+        }
 
         //Start an area teleport
         curBlock = new BlockPos(0, 0, 0);
@@ -52,7 +75,6 @@ public class TileAreaTeleporter extends TileEntity implements ITickable
     @Override
     public void update()
     {
-        //TODO: Finish teleporting an area
         if(worldObj.isRemote || curBlock == null) return;
 
         //Teleport the block
