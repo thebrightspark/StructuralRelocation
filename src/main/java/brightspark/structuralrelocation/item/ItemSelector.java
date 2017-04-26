@@ -125,7 +125,7 @@ public class ItemSelector extends ItemBasic
                     flag = true;
                     if(te instanceof TileAreaTeleporter)
                         ((TileAreaTeleporter) te).setAreaToMove(getArea(stack));
-                    player.addChatMessage(new TextComponentString("Teleporter Area Set!"));
+                    player.sendMessage(new TextComponentString("Teleporter Area Set!"));
                     break;
                 case SINGLE:
                     //Set target
@@ -135,7 +135,7 @@ public class ItemSelector extends ItemBasic
                         ((TileSingleTeleporter) te).setTarget(getTarget(stack));
                     if(te instanceof TileAreaTeleporter)
                         ((TileAreaTeleporter) te).setTarget(getTarget(stack));
-                    player.addChatMessage(new TextComponentString("Teleporter Target Set!"));
+                    player.sendMessage(new TextComponentString("Teleporter Target Set!"));
             }
         }
 
@@ -151,27 +151,27 @@ public class ItemSelector extends ItemBasic
                     case SINGLE:
                         //Set target
                         setTarget(stack, new Location(player.dimension, posToSave));
-                        player.addChatMessage(new TextComponentString("Set Target"));
+                        player.sendMessage(new TextComponentString("Set Target"));
                         break;
                     case AREA:
                         if(areaLoc1 == null)
                         {
                             //Set the first location
                             areaLoc1 = new Location(player.dimension, posToSave);
-                            player.addChatMessage(new TextComponentString("Position 1 set!"));
+                            player.sendMessage(new TextComponentString("Position 1 set!"));
                         }
                         else
                         {
                             if(areaLoc1.dimensionId != player.dimension)
                             {
                                 //Trying to set 2nd position in a different dimension
-                                player.addChatMessage(new TextComponentString("Both positions must be in the same dimension!"));
+                                player.sendMessage(new TextComponentString("Both positions must be in the same dimension!"));
                             }
                             else
                             {
                                 //Set the second position and complete the area
                                 setArea(stack, new LocationArea(areaLoc1.dimensionId, areaLoc1.position, posToSave));
-                                player.addChatMessage(new TextComponentString("Position 2 set!"));
+                                player.sendMessage(new TextComponentString("Position 2 set!"));
                             }
                             areaLoc1 = null;
                         }
@@ -189,7 +189,7 @@ public class ItemSelector extends ItemBasic
             //Switch mode
             nextMode(itemStackIn);
             if(worldIn.isRemote)
-                playerIn.addChatMessage(new TextComponentString("Change mode to " + getMode(itemStackIn).toString().toLowerCase() + " mode."));
+                playerIn.sendMessage(new TextComponentString("Change mode to " + getMode(itemStackIn).toString().toLowerCase() + " mode."));
             return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, itemStackIn);
         }
         return new ActionResult<ItemStack>(EnumActionResult.PASS, itemStackIn);

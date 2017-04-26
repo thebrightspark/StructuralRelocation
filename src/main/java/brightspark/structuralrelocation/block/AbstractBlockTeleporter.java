@@ -1,7 +1,7 @@
 package brightspark.structuralrelocation.block;
 
 import brightspark.structuralrelocation.item.ItemSelector;
-import brightspark.structuralrelocation.tileentity.ITeleporter;
+import brightspark.structuralrelocation.tileentity.AbstractTileTeleporter;
 import brightspark.structuralrelocation.util.LogHelper;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -29,10 +29,10 @@ public abstract class AbstractBlockTeleporter extends AbstractBlockContainer
         if(heldItem != null && heldItem.getItem() instanceof ItemSelector)
             return false;
         TileEntity te = world.getTileEntity(pos);
-        if(te instanceof ITeleporter && !player.isSneaking())
+        if(te instanceof AbstractTileTeleporter && !player.isSneaking())
         {
             //Try to start teleporting
-            ((ITeleporter) te).teleport(player);
+            ((AbstractTileTeleporter) te).teleport(player);
         }
         return true;
     }

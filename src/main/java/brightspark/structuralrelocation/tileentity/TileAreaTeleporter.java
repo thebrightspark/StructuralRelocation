@@ -33,7 +33,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
     {
         Iterator<BlockPos> positions = BlockPos.getAllInBox(pos1, pos2).iterator();
         while(positions.hasNext())
-            if(!worldObj.isAirBlock(positions.next()))
+            if(!world.isAirBlock(positions.next()))
                 return false;
         return true;
     }
@@ -42,7 +42,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
     public void teleport(EntityPlayer player)
     {
         //Called from the block when right clicked
-        if(worldObj.isRemote || toMove == null || target == null || curBlock != null)
+        if(world.isRemote || toMove == null || target == null || curBlock != null)
             return;
 
         BlockPos destinationStart = target.position;
@@ -55,7 +55,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         AxisAlignedBB destination = new AxisAlignedBB(destinationStart, destinationEnd);
         if(selection.intersectsWith(destination))
         {
-            player.addChatMessage(new TextComponentString("Area to be moved must not intersect the destination area!"));
+            player.sendMessage(new TextComponentString("Area to be moved must not intersect the destination area!"));
             return;
         }
         */
@@ -64,7 +64,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         //TODO: Check more precisely if the blocks can fit at the destination rather than just making sure the area is completely clear?
         if(!isAreaClear(destinationStart, destinationEnd))
         {
-            player.addChatMessage(new TextComponentString("Target area is not clear!\n" +
+            player.sendMessage(new TextComponentString("Target area is not clear!\n" +
                     "Position 1: " + destinationStart.toString() + "\n" +
                     "Position 2: " + destinationEnd.toString()));
             return;
@@ -75,21 +75,21 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         targetRelMax = toMove.getRelativeEndPoint();
         toMoveMin = toMove.getStartingPoint();
 
-        player.addChatMessage(new TextComponentString("Teleporting blocks..."));
+        player.sendMessage(new TextComponentString("Teleporting blocks..."));
     }
 
     @Override
     public void update()
     {
-        if(worldObj.isRemote || curBlock == null || !hasEnoughEnergy()) return;
+        if(world.isRemote || curBlock == null || !hasEnoughEnergy()) return;
 
         //Teleport the block
         useEnergy();
-        WorldServer server = worldObj.getMinecraftServer().worldServerForDimension(target.dimensionId);
+        WorldServer server = world.getMinecraftServer().worldServerForDimension(target.dimensionId);
         BlockPos toMovePos = toMoveMin.add(curBlock);
         BlockPos targetPos = target.position.add(curBlock);
-        server.setBlockState(targetPos, worldObj.getBlockState(toMovePos));
-        worldObj.setBlockToAir(toMovePos);
+        server.setBlockState(targetPos, world.getBlockState(toMovePos));
+        world.setBlockToAir(toMovePos);
 
         do
         {

@@ -23,25 +23,25 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
     private boolean canTeleport()
     {
         BlockPos blockPos = pos.up();
-        IBlockState state = worldObj.getBlockState(blockPos);
-        return target != null && state.getMaterial() != Material.AIR && !(state.getBlock() instanceof IFluidBlock) && state.getBlockHardness(worldObj, blockPos) >= 0;
+        IBlockState state = world.getBlockState(blockPos);
+        return target != null && state.getMaterial() != Material.AIR && !(state.getBlock() instanceof IFluidBlock) && state.getBlockHardness(world, blockPos) >= 0;
     }
 
     @Override
     public void teleport(EntityPlayer player)
     {
         //Called from the block when right clicked
-        if(worldObj.isRemote || !canTeleport()) return;
+        if(world.isRemote || !canTeleport()) return;
         if(!hasEnoughEnergy())
         {
-            player.addChatMessage(new TextComponentString("Not enough energy!"));
+            player.sendMessage(new TextComponentString("Not enough energy!"));
             return;
         }
         useEnergy();
-        IBlockState state = worldObj.getBlockState(pos.up());
-        WorldServer server = worldObj.getMinecraftServer().worldServerForDimension(target.dimensionId);
+        IBlockState state = world.getBlockState(pos.up());
+        WorldServer server = world.getMinecraftServer().worldServerForDimension(target.dimensionId);
         server.setBlockState(target.position, state);
-        worldObj.setBlockToAir(pos.up());
-        player.addChatMessage(new TextComponentString("Block Teleported"));
+        world.setBlockToAir(pos.up());
+        player.sendMessage(new TextComponentString("Block Teleported"));
     }
 }

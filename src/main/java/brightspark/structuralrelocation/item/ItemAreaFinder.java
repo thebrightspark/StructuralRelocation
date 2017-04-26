@@ -70,14 +70,14 @@ public class ItemAreaFinder extends ItemBasic
             {
                 //Don't try and overwrite what's already saved
                 if(world.isRemote)
-                    player.addChatMessage(new TextComponentString("Area already set. Shift right click in the air to clear the current area."));
+                    player.sendMessage(new TextComponentString("Area already set. Shift right click in the air to clear the current area."));
                 return EnumActionResult.SUCCESS;
             }
             if(location1 == null)
             {
                 //Set the first position
                 location1 = new Location(player.dimension, player.isSneaking() ? pos : pos.offset(side));
-                if(world.isRemote) player.addChatMessage(new TextComponentString("Position 1 set!"));
+                if(world.isRemote) player.sendMessage(new TextComponentString("Position 1 set!"));
             }
             else
             {
@@ -85,14 +85,14 @@ public class ItemAreaFinder extends ItemBasic
                 {
                     //Trying to set 2nd position in a different dimension
                     location1 = null;
-                    if(world.isRemote) player.addChatMessage(new TextComponentString("Both positions must be in the same dimension!"));
+                    if(world.isRemote) player.sendMessage(new TextComponentString("Both positions must be in the same dimension!"));
                 }
                 else
                 {
                     //Set the second position and complete the area
                     setArea(stack, new LocationArea(location1.dimensionId, location1.position, player.isSneaking() ? pos : pos.offset(side)));
                     location1 = null;
-                    if(world.isRemote) player.addChatMessage(new TextComponentString("Position 2 set!"));
+                    if(world.isRemote) player.sendMessage(new TextComponentString("Position 2 set!"));
                 }
             }
             return EnumActionResult.SUCCESS;
@@ -108,7 +108,7 @@ public class ItemAreaFinder extends ItemBasic
             //Clear any data already set
             clearArea(itemStackIn);
             location1 = null;
-            if(worldIn.isRemote) playerIn.addChatMessage(new TextComponentString("Area Cleared"));
+            if(worldIn.isRemote) playerIn.sendMessage(new TextComponentString("Area Cleared"));
             return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, itemStackIn);
         }
         return new ActionResult<ItemStack>(EnumActionResult.PASS, itemStackIn);

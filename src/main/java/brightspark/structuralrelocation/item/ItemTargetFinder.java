@@ -60,7 +60,7 @@ public class ItemTargetFinder extends ItemBasic
         if(!(block instanceof BlockSingleTeleporter) && !(block instanceof BlockAreaTeleporter))
         {
             setTarget(stack, player.dimension, player.isSneaking() ? pos : pos.offset(side));
-            if(world.isRemote) player.addChatMessage(new TextComponentString("Set Target"));
+            if(world.isRemote) player.sendMessage(new TextComponentString("Set Target"));
             return EnumActionResult.SUCCESS;
         }
         return EnumActionResult.PASS;
@@ -72,7 +72,7 @@ public class ItemTargetFinder extends ItemBasic
         if(playerIn.isSneaking())
         {
             clearTarget(itemStackIn);
-            if(worldIn.isRemote) playerIn.addChatMessage(new TextComponentString("Target Cleared"));
+            if(worldIn.isRemote) playerIn.sendMessage(new TextComponentString("Target Cleared"));
             return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, itemStackIn);
         }
         return new ActionResult<ItemStack>(EnumActionResult.PASS, itemStackIn);
