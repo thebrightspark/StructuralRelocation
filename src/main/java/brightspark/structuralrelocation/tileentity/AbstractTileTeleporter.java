@@ -23,6 +23,11 @@ public abstract class AbstractTileTeleporter extends TileEntity
         return energy.getEnergyStored() >= energyPerTeleport;
     }
 
+    protected void useEnergy()
+    {
+        energy.modifyEnergy(-energyPerTeleport);
+    }
+
     @Override
     public boolean hasCapability(Capability<?> capability, EnumFacing facing)
     {

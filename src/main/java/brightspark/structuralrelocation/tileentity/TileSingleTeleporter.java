@@ -37,6 +37,7 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
             player.addChatMessage(new TextComponentString("Not enough energy!"));
             return;
         }
+        useEnergy();
         IBlockState state = worldObj.getBlockState(pos.up());
         WorldServer server = worldObj.getMinecraftServer().worldServerForDimension(target.dimensionId);
         server.setBlockState(target.position, state);
