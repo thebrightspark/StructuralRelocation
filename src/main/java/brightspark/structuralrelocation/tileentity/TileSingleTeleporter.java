@@ -4,13 +4,12 @@ import brightspark.structuralrelocation.Location;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.fluids.IFluidBlock;
 
-public class TileSingleTeleporter extends TileEntity implements ITeleporter
+public class TileSingleTeleporter extends AbstractTileTeleporter
 {
     private Location target;
 
@@ -33,6 +32,11 @@ public class TileSingleTeleporter extends TileEntity implements ITeleporter
     {
         //Called from the block when right clicked
         if(worldObj.isRemote || !canTeleport()) return;
+        if(!hasEnoughEnergy())
+        {
+            player.addChatMessage(new TextComponentString("Not enough energy!"));
+            return;
+        }
         IBlockState state = worldObj.getBlockState(pos.up());
         WorldServer server = worldObj.getMinecraftServer().worldServerForDimension(target.dimensionId);
         server.setBlockState(target.position, state);

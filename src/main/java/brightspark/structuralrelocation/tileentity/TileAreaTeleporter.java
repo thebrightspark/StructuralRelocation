@@ -4,7 +4,6 @@ import brightspark.structuralrelocation.Location;
 import brightspark.structuralrelocation.LocationArea;
 import brightspark.structuralrelocation.util.LogHelper;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
@@ -12,10 +11,7 @@ import net.minecraft.world.WorldServer;
 
 import java.util.Iterator;
 
-/**
- * Created by Mark on 17/04/2017.
- */
-public class TileAreaTeleporter extends TileEntity implements ITickable, ITeleporter
+public class TileAreaTeleporter extends AbstractTileTeleporter implements ITickable
 {
     private LocationArea toMove;
     private Location target;
@@ -85,7 +81,7 @@ public class TileAreaTeleporter extends TileEntity implements ITickable, ITelepo
     @Override
     public void update()
     {
-        if(worldObj.isRemote || curBlock == null) return;
+        if(worldObj.isRemote || curBlock == null || !hasEnoughEnergy()) return;
 
         //Teleport the block
         WorldServer server = worldObj.getMinecraftServer().worldServerForDimension(target.dimensionId);
