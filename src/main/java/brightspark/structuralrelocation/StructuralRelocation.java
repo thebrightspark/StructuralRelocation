@@ -1,6 +1,8 @@
 package brightspark.structuralrelocation;
 
+import brightspark.structuralrelocation.handler.GuiHandler;
 import brightspark.structuralrelocation.init.SRBlocks;
+import brightspark.structuralrelocation.util.CommonUtils;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -8,6 +10,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.network.NetworkRegistry;
 
 @Mod(modid = StructuralRelocation.MOD_ID, name = StructuralRelocation.MOD_NAME, version = StructuralRelocation.VERSION)
 public class StructuralRelocation
@@ -40,6 +43,7 @@ public class StructuralRelocation
     {
         //Initialize item, blocks, textures/models and configs here
 
+        CommonUtils.regNetwork();
     }
 
     @Mod.EventHandler
@@ -48,6 +52,8 @@ public class StructuralRelocation
         //Initialize GUIs, tile entities, recipies, event handlers here
 
         SRBlocks.regTileEntities();
+
+        NetworkRegistry.INSTANCE.registerGuiHandler(instance, new GuiHandler());
     }
 
     @Mod.EventHandler

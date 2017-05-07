@@ -2,12 +2,13 @@ package brightspark.structuralrelocation.tileentity;
 
 import brightspark.structuralrelocation.Location;
 import brightspark.structuralrelocation.LocationArea;
-import brightspark.structuralrelocation.util.LogHelper;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.Iterator;
 
@@ -24,9 +25,38 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         if(area != null) toMove = area;
     }
 
+    public LocationArea getAreaToMove()
+    {
+        return toMove;
+    }
+
     public void setTarget(Location target)
     {
         if(target != null) this.target = target;
+    }
+
+    public Location getTarget()
+    {
+        return target;
+    }
+
+    /**
+     * This should only be used to sync the data from the server in the Gui's Container class
+     */
+    @SideOnly(Side.CLIENT)
+    public void setCurBlock(BlockPos pos)
+    {
+        curBlock = pos;
+    }
+
+    public BlockPos getCurBlock()
+    {
+        return curBlock == null ? null : curBlock.add(toMoveMin);
+    }
+
+    public boolean isActive()
+    {
+        return curBlock != null;
     }
 
     private boolean isAreaClear(BlockPos pos1, BlockPos pos2)
@@ -74,8 +104,14 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         curBlock = new BlockPos(0, 0, 0);
         targetRelMax = toMove.getRelativeEndPoint();
         toMoveMin = toMove.getStartingPoint();
+    }
 
-        player.sendMessage(new TextComponentString("Teleporting blocks..."));
+    /**
+     * If the teleporter is running, then stop it
+     */
+    public void stop()
+    {
+        curBlock = null;
     }
 
     @Override
@@ -106,10 +142,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
 
             //If reached the max for Y, then finished!
             if(nextPos.getY() > targetRelMax.getY())
-            {
                 nextPos = null;
-                LogHelper.info("Teleporting Finished!");
-            }
 
             curBlock = nextPos == null ? null : new BlockPos(nextPos);
             toMovePos = curBlock == null ? null : toMoveMin.add(curBlock);

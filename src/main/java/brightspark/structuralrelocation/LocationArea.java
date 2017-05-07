@@ -52,6 +52,11 @@ public class LocationArea implements INBTSerializable<NBTTagCompound>
         return getEndPoint().subtract(getStartingPoint());
     }
 
+    public boolean isEqual(LocationArea area)
+    {
+        return area != null && area.dimensionId == dimensionId && area.pos1.equals(pos1) && area.pos2.equals(pos2);
+    }
+
     @Override
     public NBTTagCompound serializeNBT()
     {

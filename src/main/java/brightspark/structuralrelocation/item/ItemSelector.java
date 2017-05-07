@@ -6,6 +6,7 @@ import brightspark.structuralrelocation.block.BlockAreaTeleporter;
 import brightspark.structuralrelocation.block.BlockSingleTeleporter;
 import brightspark.structuralrelocation.tileentity.TileAreaTeleporter;
 import brightspark.structuralrelocation.tileentity.TileSingleTeleporter;
+import brightspark.structuralrelocation.util.CommonUtils;
 import net.minecraft.block.Block;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.player.EntityPlayer;
@@ -195,13 +196,6 @@ public class ItemSelector extends ItemBasic
         return new ActionResult<ItemStack>(EnumActionResult.PASS, itemStackIn);
     }
 
-    private static String posToString(BlockPos pos)
-    {
-        return TextFormatting.WHITE + "X: " + TextFormatting.GRAY + pos.getX() +
-                TextFormatting.WHITE + " Y: " + TextFormatting.GRAY + pos.getY() +
-                TextFormatting.WHITE + " Z: " + TextFormatting.GRAY + pos.getZ();
-    }
-
     @Override
     public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced)
     {
@@ -218,7 +212,7 @@ public class ItemSelector extends ItemBasic
                 {
                     BlockPos target = loc.position;
                     tooltip.add(TextFormatting.GOLD + "Target Dimension ID: " + TextFormatting.GRAY + loc.dimensionId);
-                    tooltip.add(TextFormatting.GOLD + "Target Position: " + posToString(target));
+                    tooltip.add(TextFormatting.GOLD + "Target Position: " + CommonUtils.posToString(target));
                 }
                 break;
             case AREA:
@@ -233,8 +227,8 @@ public class ItemSelector extends ItemBasic
                         BlockPos pos1 = area.pos1;
                         BlockPos pos2 = area.pos2;
                         tooltip.add(TextFormatting.GOLD + "Target Dimension ID: " + TextFormatting.GRAY + area.dimensionId);
-                        tooltip.add(TextFormatting.GOLD + "Target Area Pos 1: " + posToString(pos1));
-                        tooltip.add(TextFormatting.GOLD + "Target Area Pos 2: " + posToString(pos2));
+                        tooltip.add(TextFormatting.GOLD + "Target Area Pos 1: " + CommonUtils.posToString(pos1));
+                        tooltip.add(TextFormatting.GOLD + "Target Area Pos 2: " + CommonUtils.posToString(pos2));
                     }
                 }
                 else
@@ -242,7 +236,7 @@ public class ItemSelector extends ItemBasic
                     //Only the first position is set
                     BlockPos pos = areaLoc1.position;
                     tooltip.add(TextFormatting.GOLD + "Target Dimension ID: " + TextFormatting.GRAY + areaLoc1.dimensionId);
-                    tooltip.add(TextFormatting.GOLD + "Target Area Pos 1: " + posToString(pos));
+                    tooltip.add(TextFormatting.GOLD + "Target Area Pos 1: " + CommonUtils.posToString(pos));
                     tooltip.add(TextFormatting.GOLD + "Target Area Pos 2: " + TextFormatting.GRAY + "Not yet set");
                 }
         }

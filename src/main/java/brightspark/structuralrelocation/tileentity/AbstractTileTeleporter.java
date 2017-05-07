@@ -12,13 +12,36 @@ public abstract class AbstractTileTeleporter extends TileEntity
     public SREnergyStorage energy = new SREnergyStorage(1000000, 1000, 0);
     protected int energyPerTeleport = 100;
 
+    public boolean isUseableByPlayer(EntityPlayer player)
+    {
+        return world.getTileEntity(pos) == this && player.getDistanceSq((double)pos.getX() + 0.5D, (double)pos.getY() + 0.5D, (double)pos.getZ() + 0.5D) <= 64.0D;
+    }
+
     /**
      * Tries to start the teleporting
      * Player argument is the one who activated the block, and is used to send messages to
      */
     public abstract void teleport(EntityPlayer player);
 
-    protected boolean hasEnoughEnergy()
+    public int getEnergyStored()
+    {
+        return energy.getEnergyStored();
+    }
+
+    public int getMaxEnergyStored()
+    {
+        return energy.getMaxEnergyStored();
+    }
+
+    /**
+     * Returns a value between 0 and 1 representing how full the energy storage is
+     */
+    public float getEnergyPercent()
+    {
+        return (float) energy.getEnergyStored() / (float) energy.getMaxEnergyStored();
+    }
+
+    public boolean hasEnoughEnergy()
     {
         return energy.getEnergyStored() >= energyPerTeleport;
     }

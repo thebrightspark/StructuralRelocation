@@ -20,6 +20,11 @@ public class Location implements INBTSerializable<NBTTagCompound>
         deserializeNBT(nbt);
     }
 
+    public boolean isEqual(Location location)
+    {
+        return location != null && location.dimensionId == dimensionId && location.position.equals(position);
+    }
+
     @Override
     public NBTTagCompound serializeNBT()
     {

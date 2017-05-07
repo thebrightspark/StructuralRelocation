@@ -20,11 +20,16 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
         target = location;
     }
 
+    public Location getTarget()
+    {
+        return target;
+    }
+
     private boolean canTeleport()
     {
         BlockPos blockPos = pos.up();
         IBlockState state = world.getBlockState(blockPos);
-        return target != null && state.getMaterial() != Material.AIR && !(state.getBlock() instanceof IFluidBlock) && state.getBlockHardness(world, blockPos) >= 0;
+        return target != null && state.getMaterial() != Material.AIR && !(state.getBlock() instanceof IFluidBlock) && state.getBlockHardness(world, blockPos) >= 0 && hasEnoughEnergy();
     }
 
     @Override
@@ -32,11 +37,6 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
     {
         //Called from the block when right clicked
         if(world.isRemote || !canTeleport()) return;
-        if(!hasEnoughEnergy())
-        {
-            player.sendMessage(new TextComponentString("Not enough energy!"));
-            return;
-        }
         useEnergy();
         IBlockState state = world.getBlockState(pos.up());
         WorldServer server = world.getMinecraftServer().worldServerForDimension(target.dimensionId);
