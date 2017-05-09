@@ -4,7 +4,6 @@ import brightspark.structuralrelocation.tileentity.AbstractTileTeleporter;
 import brightspark.structuralrelocation.tileentity.TileAreaTeleporter;
 import brightspark.structuralrelocation.util.LogHelper;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IThreadListener;
@@ -24,7 +23,7 @@ public class MessageGuiTeleport implements IMessage
 
     public MessageGuiTeleport() {}
 
-    public MessageGuiTeleport(int buttonId, EntityPlayerSP player, BlockPos pos)
+    public MessageGuiTeleport(int buttonId, EntityPlayer player, BlockPos pos)
     {
         this.buttonId = buttonId;
         this.playerUUID = player.getUniqueID();

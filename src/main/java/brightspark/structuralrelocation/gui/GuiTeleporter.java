@@ -32,7 +32,7 @@ public class GuiTeleporter extends GuiContainer
     protected int textColour = 4210752;
     public AbstractTileTeleporter teleporter;
     protected boolean isAreaTeleporter;
-    protected final Rectangle energyBar = new Rectangle(11, 11, 10, 73);
+    protected final Rectangle energyBar = new Rectangle(11, 16, 10, 63);
     protected List<Icon> iconList = new ArrayList<Icon>();
 
     private Icon iconTarget, iconArea, iconStatus;
