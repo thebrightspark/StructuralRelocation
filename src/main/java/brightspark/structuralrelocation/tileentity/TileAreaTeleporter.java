@@ -120,12 +120,10 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         if(world.isRemote || curBlock == null || !hasEnoughEnergy()) return;
 
         //Teleport the block
-        useEnergy();
         WorldServer server = world.getMinecraftServer().worldServerForDimension(target.dimensionId);
         BlockPos toMovePos = toMoveMin.add(curBlock);
         BlockPos targetPos = target.position.add(curBlock);
-        server.setBlockState(targetPos, world.getBlockState(toMovePos));
-        world.setBlockToAir(toMovePos);
+        teleportBlock(toMovePos, new Location(target.dimensionId, targetPos));
 
         do
         {

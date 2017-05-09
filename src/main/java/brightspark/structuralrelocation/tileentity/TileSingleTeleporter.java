@@ -6,7 +6,6 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
-import net.minecraft.world.WorldServer;
 import net.minecraftforge.fluids.IFluidBlock;
 
 public class TileSingleTeleporter extends AbstractTileTeleporter
@@ -37,11 +36,7 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
     {
         //Called from the block when right clicked
         if(world.isRemote || !canTeleport()) return;
-        useEnergy();
-        IBlockState state = world.getBlockState(pos.up());
-        WorldServer server = world.getMinecraftServer().worldServerForDimension(target.dimensionId);
-        server.setBlockState(target.position, state);
-        world.setBlockToAir(pos.up());
+        teleportBlock(pos.up(), target);
         player.sendMessage(new TextComponentString("Block Teleported"));
     }
 }

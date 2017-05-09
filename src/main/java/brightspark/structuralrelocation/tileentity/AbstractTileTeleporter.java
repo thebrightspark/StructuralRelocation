@@ -1,9 +1,15 @@
 package brightspark.structuralrelocation.tileentity;
 
+import brightspark.structuralrelocation.Location;
 import brightspark.structuralrelocation.SREnergyStorage;
+import brightspark.structuralrelocation.util.LogHelper;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.energy.CapabilityEnergy;
 
@@ -22,6 +28,52 @@ public abstract class AbstractTileTeleporter extends TileEntity
      * Player argument is the one who activated the block, and is used to send messages to
      */
     public abstract void teleport(EntityPlayer player);
+
+    /**
+     * Teleports the block in the given world and position to the given location
+     */
+    protected void teleportBlock(BlockPos from, Location to)
+    {
+        teleportBlock(from, to, true);
+    }
+
+    protected void teleportBlock(BlockPos from, Location to, boolean moveTileEntities)
+    {
+        //TODO: Handle moveTileEntities
+        useEnergy();
+        IBlockState state = world.getBlockState(from);
+        TileEntity te = world.getTileEntity(from);
+        TileEntity newTe = null;
+        if(te != null)
+        {
+            try
+            {
+                //Try and copy the tile entity
+                newTe = te.getClass().newInstance();
+                NBTTagCompound teNbt = te.serializeNBT();
+                newTe.deserializeNBT(teNbt);
+                newTe.markDirty();
+            }
+            catch(Exception e)
+            {
+                LogHelper.error("Couldn't create a new instance of the TileEntity at " + from.toString());
+                e.printStackTrace();
+            }
+        }
+
+        //Set the new block and tile entity
+        WorldServer worldTo = world.getMinecraftServer().worldServerForDimension(to.dimensionId);
+        worldTo.setBlockState(to.position, state);
+        worldTo.setTileEntity(to.position, newTe);
+        //Remove the old block and tile entity
+        world.removeTileEntity(from);
+        world.setBlockToAir(from);
+    }
+
+    protected void copyBlock(BlockPos from, Location to)
+    {
+        //TODO: Copy block method
+    }
 
     public int getEnergyStored()
     {
