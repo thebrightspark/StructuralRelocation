@@ -28,7 +28,7 @@ import java.util.List;
 
 public class ItemSelector extends ItemBasic
 {
-    private enum EnumSelection
+    public enum EnumSelection
     {
         SINGLE,
         AREA;
@@ -67,7 +67,7 @@ public class ItemSelector extends ItemBasic
         stack.setTagInfo("area", area.serializeNBT());
     }
 
-    private static Location getTarget(ItemStack stack)
+    public static Location getTarget(ItemStack stack)
     {
         NBTTagCompound tag = stack.getTagCompound();
         if(tag == null) return null;
@@ -75,7 +75,7 @@ public class ItemSelector extends ItemBasic
         return locTag.getSize() == 0 ? null : new Location(locTag);
     }
 
-    private static LocationArea getArea(ItemStack stack)
+    public static LocationArea getArea(ItemStack stack)
     {
         NBTTagCompound tag = stack.getTagCompound();
         if(tag == null) return null;
@@ -89,7 +89,7 @@ public class ItemSelector extends ItemBasic
         stack.setTagInfo("mode", new NBTTagInt(mode.next().ordinal()));
     }
 
-    private static EnumSelection getMode(ItemStack stack)
+    public static EnumSelection getMode(ItemStack stack)
     {
         NBTTagCompound tag = stack.getTagCompound();
         if(tag == null) return EnumSelection.SINGLE;

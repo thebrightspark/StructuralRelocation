@@ -55,16 +55,17 @@ public class GuiTeleporter extends GuiContainer
     {
         super.initGui();
 
+        //TODO: Re-implement Copy button (Remove setting 'enabled' state to false for the Copy buttons)
         if(isAreaTeleporter)
         {
             buttonList.add(new Button(25, 57, "Teleport"));
-            buttonList.add(new Button(74, 57, "Copy"));
+            buttonList.add(new Button(74, 57, "Copy", false));
             buttonList.add(new Button(123, 57, "Stop", false));
         }
         else
         {
             buttonList.add(new Button(41, 57, "Teleport"));
-            buttonList.add(new Button(107, 57, "Copy"));
+            buttonList.add(new Button(107, 57, "Copy", false));
         }
 
         /*
@@ -175,13 +176,14 @@ public class GuiTeleporter extends GuiContainer
     {
         boolean isActive = isAreaTeleporter && ((TileAreaTeleporter) teleporter).isActive();
         boolean hasEnergy = teleporter.hasEnoughEnergy();
+        boolean hasTargets = iconTarget.getBackground() == EnumIconBackground.ON && (!isAreaTeleporter || iconArea.getBackground() == EnumIconBackground.ON);
         for(GuiButton button : buttonList)
         {
             switch(button.id)
             {
                 case 0: //Teleport
-                case 1: //Copy
-                    button.enabled = !isActive && hasEnergy;
+                    button.enabled = !isActive && hasEnergy && hasTargets;
+                case 1: //Copy (Do nothing for now while unimplemented) TODO: Re-implement Copy button
                     break;
                 case 2: //Stop
                     button.enabled = isActive;
@@ -364,6 +366,11 @@ public class GuiTeleporter extends GuiContainer
         public void setBackground(EnumIconBackground background)
         {
             bg = background;
+        }
+
+        public EnumIconBackground getBackground()
+        {
+            return bg;
         }
 
         public void setTooltip(List<String> text)
