@@ -3,6 +3,7 @@ package brightspark.structuralrelocation;
 import brightspark.structuralrelocation.handler.ConfigHandler;
 import brightspark.structuralrelocation.handler.GuiHandler;
 import brightspark.structuralrelocation.init.SRBlocks;
+import brightspark.structuralrelocation.init.SRRecipes;
 import brightspark.structuralrelocation.util.CommonUtils;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.init.Items;
@@ -54,6 +55,7 @@ public class StructuralRelocation
         //Initialize GUIs, tile entities, recipies, event handlers here
 
         SRBlocks.regTileEntities();
+        SRRecipes.init();
 
         NetworkRegistry.INSTANCE.registerGuiHandler(instance, new GuiHandler());
     }
