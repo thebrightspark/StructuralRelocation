@@ -20,12 +20,10 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import java.util.Arrays;
-
 public class ContainerTeleporter extends Container
 {
     protected AbstractTileTeleporter teleporter;
-    protected int[] cachedFields;
+    protected int cachedEnergy = -1;
     protected Location cachedLocation;
     protected LocationArea cachedArea;
     protected BlockPos cachedCurBlock;
@@ -57,25 +55,6 @@ public class ContainerTeleporter extends Container
         return teleporter.isUseableByPlayer(playerIn);
     }
 
-    private boolean handleCachedField(int index)
-    {
-        int teValue;
-        switch(index)
-        {
-            case 0:
-                teValue = teleporter.energy.getEnergyStored();
-                break;
-            default:
-                LogHelper.warn("Unhandled server container data for ID " + index + "!");
-                return false;
-        }
-
-        boolean result;
-        if(result = cachedFields[index] != teValue)
-            cachedFields[index] = teValue;
-        return result;
-    }
-
     /**
      * Looks for changes made in the container, sends them to every listener.
      */
@@ -84,25 +63,15 @@ public class ContainerTeleporter extends Container
     {
         super.detectAndSendChanges();
 
-        if(cachedFields == null)
-        {
-            cachedFields = new int[1];
-            //Fill the array with -1s rather than 0s so that a field value of 0 can be detected when the container is opened
-            Arrays.fill(cachedFields, -1);
-        }
-
         for(IContainerListener listener : listeners)
         {
-            //Cached fields
-            for(int i = 0; i < cachedFields.length; i++)
-                if(handleCachedField(i))
-                {
-                    //If the data is bigger than a short, then send over a custom, larger packet.
-                    if(cachedFields[i] > Short.MAX_VALUE || cachedFields[i] < Short.MIN_VALUE)
-                        CommonUtils.NETWORK.sendTo(new MessageUpdateClientContainer(i, cachedFields[i]), (EntityPlayerMP) listener);
-                    else
-                        listener.sendProgressBarUpdate(this, i, cachedFields[i]);
-                }
+            //Energy
+            int energy = teleporter.getEnergyStored();
+            if(energy != cachedEnergy)
+            {
+                cachedEnergy = energy;
+                CommonUtils.NETWORK.sendTo(new MessageUpdateClientContainer(0, energy), (EntityPlayerMP) listener);
+            }
 
             //Locations
             if(teleporter instanceof TileAreaTeleporter)
@@ -146,7 +115,7 @@ public class ContainerTeleporter extends Container
         switch(id)
         {
             case 0:
-                teleporter.energy.setEnergyStored(data);
+                teleporter.setEnergy(data);
                 break;
             default:
                 LogHelper.warn("Unhandled client container data for ID " + id + "!");

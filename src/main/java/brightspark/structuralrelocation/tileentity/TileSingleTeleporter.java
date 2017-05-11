@@ -4,6 +4,7 @@ import brightspark.structuralrelocation.Location;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.fluids.IFluidBlock;
@@ -11,8 +12,6 @@ import net.minecraftforge.fluids.IFluidBlock;
 public class TileSingleTeleporter extends AbstractTileTeleporter
 {
     private Location target;
-
-    public TileSingleTeleporter() {}
 
     public void setTarget(Location location)
     {
@@ -38,5 +37,24 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
         if(world.isRemote || !canTeleport()) return;
         teleportBlock(pos.up(), target);
         player.sendMessage(new TextComponentString("Block Teleported"));
+        markDirty();
+    }
+
+    @Override
+    public void readFromNBT(NBTTagCompound nbt)
+    {
+        super.readFromNBT(nbt);
+
+        //Read target
+        if(nbt.hasKey("target")) target = new Location(nbt.getCompoundTag("target"));
+    }
+
+    @Override
+    public NBTTagCompound writeToNBT(NBTTagCompound nbt)
+    {
+        //Write target
+        if(target != null) nbt.setTag("target", target.serializeNBT());
+
+        return super.writeToNBT(nbt);
     }
 }

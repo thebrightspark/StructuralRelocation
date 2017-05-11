@@ -53,4 +53,10 @@ public class SREnergyStorage extends EnergyStorage implements INBTSerializable<N
         maxReceive = tag.getInteger("maxReceive");
         maxExtract = tag.getInteger("maxExtract");
     }
+
+    @Override
+    public String toString()
+    {
+        return "energy: " + energy + ", max: " + capacity + " in: " + maxReceive + " out: " + maxExtract;
+    }
 }

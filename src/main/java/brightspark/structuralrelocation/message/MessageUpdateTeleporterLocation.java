@@ -79,19 +79,12 @@ public class MessageUpdateTeleporterLocation implements IMessage
                 {
                     Minecraft mc = Minecraft.getMinecraft();
                     Container container = mc.player.openContainer;
-                    LogHelper.info("Updating Teleporter");
                     if(container instanceof ContainerTeleporter)
                     {
                         if(message.location == null)
                             ((ContainerTeleporter) container).updateTeleporter(message.area);
                         else
                             ((ContainerTeleporter) container).updateTeleporter(message.location);
-                        //Update the GUI
-                        /*
-                        GuiScreen gui = mc.currentScreen;
-                        if(gui instanceof GuiTeleporter)
-                            ((GuiTeleporter) gui).updateIcons();
-                        */
                     }
                 }
             });

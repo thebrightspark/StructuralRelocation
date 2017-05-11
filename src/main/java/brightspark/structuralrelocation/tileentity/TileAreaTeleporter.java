@@ -3,6 +3,7 @@ package brightspark.structuralrelocation.tileentity;
 import brightspark.structuralrelocation.Location;
 import brightspark.structuralrelocation.LocationArea;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
@@ -17,8 +18,6 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
     private LocationArea toMove;
     private Location target;
     private BlockPos curBlock, targetRelMax, toMoveMin;
-
-    public TileAreaTeleporter() {}
 
     public void setAreaToMove(LocationArea area)
     {
@@ -147,5 +146,37 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         }
         //Skip air and unbreakable blocks
         while(curBlock != null && (server.isAirBlock(toMovePos) || server.getBlockState(toMovePos).getBlockHardness(server, toMovePos) < 0));
+
+        markDirty();
+    }
+
+    @Override
+    public void readFromNBT(NBTTagCompound nbt)
+    {
+        super.readFromNBT(nbt);
+
+        //Read target
+        if(nbt.hasKey("target")) target = new Location(nbt.getCompoundTag("target"));
+        //Read area
+        if(nbt.hasKey("area")) toMove = new LocationArea(nbt.getCompoundTag("area"));
+        //Read other data
+        if(nbt.hasKey("curBlock")) curBlock = BlockPos.fromLong(nbt.getLong("curBlock"));
+        if(nbt.hasKey("targetRelMax")) targetRelMax = BlockPos.fromLong(nbt.getLong("targetRelMax"));
+        if(nbt.hasKey("toMoveMin")) toMoveMin = BlockPos.fromLong(nbt.getLong("toMoveMin"));
+    }
+
+    @Override
+    public NBTTagCompound writeToNBT(NBTTagCompound nbt)
+    {
+        //Write target
+        if(target != null) nbt.setTag("target", target.serializeNBT());
+        //Write area
+        if(toMove != null) nbt.setTag("area", toMove.serializeNBT());
+        //Write other data
+        if(curBlock != null) nbt.setLong("curBlock", curBlock.toLong());
+        if(targetRelMax != null) nbt.setLong("targetRelMax", targetRelMax.toLong());
+        if(toMoveMin != null) nbt.setLong("toMoveMin", toMoveMin.toLong());
+
+        return super.writeToNBT(nbt);
     }
 }

@@ -15,8 +15,18 @@ import net.minecraftforge.energy.CapabilityEnergy;
 
 public abstract class AbstractTileTeleporter extends TileEntity
 {
-    public SREnergyStorage energy = new SREnergyStorage(1000000, 1000, 0);
+    public SREnergyStorage energy;
     protected int energyPerTeleport = 100;
+
+    public AbstractTileTeleporter()
+    {
+        initEnergy();
+    }
+
+    public void initEnergy()
+    {
+        energy = new SREnergyStorage(1000000, 1000, 0);
+    }
 
     public boolean isUseableByPlayer(EntityPlayer player)
     {
@@ -39,7 +49,6 @@ public abstract class AbstractTileTeleporter extends TileEntity
 
     protected void teleportBlock(BlockPos from, Location to, boolean moveTileEntities)
     {
-        //TODO: Handle moveTileEntities
         useEnergy();
         IBlockState state = world.getBlockState(from);
         TileEntity te = world.getTileEntity(from);
@@ -103,6 +112,13 @@ public abstract class AbstractTileTeleporter extends TileEntity
         energy.modifyEnergy(-energyPerTeleport);
     }
 
+    public void setEnergy(int amount)
+    {
+        if(energy.getEnergyStored() == 0 && energy.getMaxEnergyStored() == 0)
+            initEnergy();
+        energy.setEnergyStored(amount);
+    }
+
     @Override
     public boolean hasCapability(Capability<?> capability, EnumFacing facing)
     {
@@ -115,5 +131,23 @@ public abstract class AbstractTileTeleporter extends TileEntity
         if(capability == CapabilityEnergy.ENERGY)
             return (T) energy;
         return super.getCapability(capability, facing);
+    }
+
+    @Override
+    public void readFromNBT(NBTTagCompound nbt)
+    {
+        super.readFromNBT(nbt);
+
+        //Read energy
+        energy.deserializeNBT(nbt.getCompoundTag("energy"));
+    }
+
+    @Override
+    public NBTTagCompound writeToNBT(NBTTagCompound nbt)
+    {
+        //Write energy
+        nbt.setTag("energy", energy.serializeNBT());
+
+        return super.writeToNBT(nbt);
     }
 }
