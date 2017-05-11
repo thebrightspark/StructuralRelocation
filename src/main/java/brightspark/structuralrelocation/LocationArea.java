@@ -1,6 +1,8 @@
 package brightspark.structuralrelocation;
 
+import brightspark.structuralrelocation.util.LogHelper;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.util.INBTSerializable;
 
@@ -50,6 +52,43 @@ public class LocationArea implements INBTSerializable<NBTTagCompound>
     public BlockPos getRelativeEndPoint()
     {
         return getEndPoint().subtract(getStartingPoint());
+    }
+
+    /**
+     * Get the length of the area along the axis given.
+     */
+    public int getSize(EnumFacing.Axis axis)
+    {
+        BlockPos minPos = getStartingPoint();
+        BlockPos maxPos = getEndPoint();
+        switch(axis)
+        {
+            case X:
+                return maxPos.getX() - minPos.getX();
+            case Y:
+                return maxPos.getY() - minPos.getY();
+            case Z:
+                return maxPos.getZ() - minPos.getZ();
+            default:
+                LogHelper.error("Unhandled axis!?");
+                return -1;
+        }
+    }
+
+    /**
+     * Checks the size of the area in each dimension to check if any are greater than the config's max size
+     */
+    public boolean isTooBig()
+    {
+        for(EnumFacing.Axis axis : EnumFacing.Axis.values())
+            if(getSize(axis) > Config.maxTeleportAreaSize)
+                return true;
+        return false;
+    }
+
+    public String getSizeString()
+    {
+        return getSize(EnumFacing.Axis.X) + " x " + getSize(EnumFacing.Axis.Y) + " x " + getSize(EnumFacing.Axis.Z);
     }
 
     public boolean isEqual(LocationArea area)

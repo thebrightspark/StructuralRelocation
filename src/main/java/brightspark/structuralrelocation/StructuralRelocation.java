@@ -1,5 +1,6 @@
 package brightspark.structuralrelocation;
 
+import brightspark.structuralrelocation.handler.ConfigHandler;
 import brightspark.structuralrelocation.handler.GuiHandler;
 import brightspark.structuralrelocation.init.SRBlocks;
 import brightspark.structuralrelocation.util.CommonUtils;
@@ -43,6 +44,7 @@ public class StructuralRelocation
     {
         //Initialize item, blocks, textures/models and configs here
 
+        ConfigHandler.init(event.getSuggestedConfigurationFile());
         CommonUtils.regNetwork();
     }
 

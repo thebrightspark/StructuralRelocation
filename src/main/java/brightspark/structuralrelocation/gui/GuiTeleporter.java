@@ -101,7 +101,7 @@ public class GuiTeleporter extends GuiContainer
             else
             {
                 tooltipTarget.add(TextFormatting.YELLOW + "Dimension ID: " + TextFormatting.GRAY + target.dimensionId);
-                tooltipTarget.add(TextFormatting.YELLOW + "Block Position: " + CommonUtils.posToString(target.position));
+                tooltipTarget.add(TextFormatting.YELLOW + "Position: " + CommonUtils.posToString(target.position));
             }
             iconTarget.setTooltip(tooltipTarget);
             iconTarget.setBackground(target == null ? EnumIconBackground.OFF : EnumIconBackground.ON);
@@ -114,9 +114,10 @@ public class GuiTeleporter extends GuiContainer
                 tooltipArea.add(TextFormatting.RED + "Area not set!");
             else
             {
-                tooltipArea.add(TextFormatting.YELLOW + "Area Dimension ID: " + TextFormatting.GRAY + area.dimensionId);
-                tooltipArea.add(TextFormatting.YELLOW + "Area Position 1: " + CommonUtils.posToString(area.pos1));
-                tooltipArea.add(TextFormatting.YELLOW + "Area Position 2: " + CommonUtils.posToString(area.pos2));
+                tooltipArea.add(TextFormatting.YELLOW + "Dimension ID: " + TextFormatting.GRAY + area.dimensionId);
+                tooltipArea.add(TextFormatting.YELLOW + "Position 1: " + CommonUtils.posToString(area.pos1));
+                tooltipArea.add(TextFormatting.YELLOW + "Position 2: " + CommonUtils.posToString(area.pos2));
+                tooltipArea.add(TextFormatting.YELLOW + "Size: " + TextFormatting.GRAY + area.getSizeString());
             }
             iconArea.setTooltip(tooltipArea);
             iconArea.setBackground(areaTE.getAreaToMove() == null ? EnumIconBackground.OFF : EnumIconBackground.ON);

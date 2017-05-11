@@ -170,9 +170,16 @@ public class ItemSelector extends ItemBasic
                             }
                             else
                             {
-                                //Set the second position and complete the area
-                                setArea(stack, new LocationArea(areaLoc1.dimensionId, areaLoc1.position, posToSave));
-                                player.sendMessage(new TextComponentString("Position 2 set!"));
+                                //Check that the area isn't too big according to the config
+                                LocationArea area = new LocationArea(areaLoc1.dimensionId, areaLoc1.position, posToSave);
+                                if(area.isTooBig())
+                                    player.sendMessage(new TextComponentString("Area is too big!\nArea size: " + area.getSizeString()));
+                                else
+                                {
+                                    //Set the second position and complete the area
+                                    setArea(stack, area);
+                                    player.sendMessage(new TextComponentString("Position 2 set!"));
+                                }
                             }
                             areaLoc1 = null;
                         }
@@ -211,8 +218,8 @@ public class ItemSelector extends ItemBasic
                 else
                 {
                     BlockPos target = loc.position;
-                    tooltip.add(TextFormatting.GOLD + "Target Dimension ID: " + TextFormatting.GRAY + loc.dimensionId);
-                    tooltip.add(TextFormatting.GOLD + "Target Position: " + CommonUtils.posToString(target));
+                    tooltip.add(TextFormatting.GOLD + "Dimension ID: " + TextFormatting.GRAY + loc.dimensionId);
+                    tooltip.add(TextFormatting.GOLD + "Position: " + CommonUtils.posToString(target));
                 }
                 break;
             case AREA:
@@ -226,19 +233,33 @@ public class ItemSelector extends ItemBasic
                         //Area set
                         BlockPos pos1 = area.pos1;
                         BlockPos pos2 = area.pos2;
-                        tooltip.add(TextFormatting.GOLD + "Target Dimension ID: " + TextFormatting.GRAY + area.dimensionId);
-                        tooltip.add(TextFormatting.GOLD + "Target Area Pos 1: " + CommonUtils.posToString(pos1));
-                        tooltip.add(TextFormatting.GOLD + "Target Area Pos 2: " + CommonUtils.posToString(pos2));
+                        tooltip.add(TextFormatting.GOLD + "Dimension ID: " + TextFormatting.GRAY + area.dimensionId);
+                        tooltip.add(TextFormatting.GOLD + "Position 1: " + CommonUtils.posToString(pos1));
+                        tooltip.add(TextFormatting.GOLD + "Position 2: " + CommonUtils.posToString(pos2));
+                        tooltip.add(TextFormatting.GOLD + "Size: " + TextFormatting.GRAY + area.getSizeString());
                     }
                 }
                 else
                 {
                     //Only the first position is set
                     BlockPos pos = areaLoc1.position;
-                    tooltip.add(TextFormatting.GOLD + "Target Dimension ID: " + TextFormatting.GRAY + areaLoc1.dimensionId);
-                    tooltip.add(TextFormatting.GOLD + "Target Area Pos 1: " + CommonUtils.posToString(pos));
-                    tooltip.add(TextFormatting.GOLD + "Target Area Pos 2: " + TextFormatting.GRAY + "Not yet set");
+                    tooltip.add(TextFormatting.GOLD + "Dimension ID: " + TextFormatting.GRAY + areaLoc1.dimensionId);
+                    tooltip.add(TextFormatting.GOLD + "Area Pos 1: " + CommonUtils.posToString(pos));
+                    tooltip.add(TextFormatting.GOLD + "Area Pos 2: " + TextFormatting.GRAY + "Not yet set");
                 }
         }
+    }
+
+    /**
+     * Allow the item one last chance to modify its name used for the
+     * tool highlight useful for adding something extra that can't be removed
+     * by a user in the displayed name, such as a mode of operation.
+     *
+     * @param item the ItemStack for the item.
+     * @param displayName the name that will be displayed unless it is changed in this method.
+     */
+    public String getHighlightTip( ItemStack item, String displayName )
+    {
+        return displayName + " [" + TextFormatting.GOLD + getMode(item).toString() + TextFormatting.RESET + "]";
     }
 }
