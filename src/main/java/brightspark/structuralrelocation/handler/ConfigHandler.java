@@ -28,6 +28,7 @@ public class ConfigHandler
     private static void loadConfiguration()
     {
         Config.maxTeleportAreaSize = config.getInt("maxTeleportAreaSize", GENERAL, Config.maxTeleportAreaSize, 2, Integer.MAX_VALUE, "The maximum size of a dimension of a selected area");
+        Config.energyPerBlockTeleport = config.getInt("energyPerBlockTeleport", GENERAL, Config.energyPerBlockTeleport, 0, Integer.MAX_VALUE, "The amount of energy used to teleport each block");
 
         if(config.hasChanged())
             config.save();

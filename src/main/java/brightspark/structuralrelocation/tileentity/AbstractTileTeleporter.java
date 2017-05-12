@@ -1,5 +1,6 @@
 package brightspark.structuralrelocation.tileentity;
 
+import brightspark.structuralrelocation.Config;
 import brightspark.structuralrelocation.Location;
 import brightspark.structuralrelocation.SREnergyStorage;
 import brightspark.structuralrelocation.util.LogHelper;
@@ -16,7 +17,6 @@ import net.minecraftforge.energy.CapabilityEnergy;
 public abstract class AbstractTileTeleporter extends TileEntity
 {
     public SREnergyStorage energy;
-    protected int energyPerTeleport = 100;
 
     public AbstractTileTeleporter()
     {
@@ -104,12 +104,12 @@ public abstract class AbstractTileTeleporter extends TileEntity
 
     public boolean hasEnoughEnergy()
     {
-        return energy.getEnergyStored() >= energyPerTeleport;
+        return energy.getEnergyStored() >= Config.energyPerBlockTeleport;
     }
 
     protected void useEnergy()
     {
-        energy.modifyEnergy(-energyPerTeleport);
+        energy.modifyEnergy(-Config.energyPerBlockTeleport);
     }
 
     public void setEnergy(int amount)
