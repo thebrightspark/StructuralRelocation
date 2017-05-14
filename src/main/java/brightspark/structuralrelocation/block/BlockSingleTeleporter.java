@@ -9,7 +9,7 @@ public class BlockSingleTeleporter extends AbstractBlockTeleporter
 {
     public BlockSingleTeleporter()
     {
-        super("singleTeleporter", Material.ROCK);
+        super("single_teleporter");
     }
 
     @Override

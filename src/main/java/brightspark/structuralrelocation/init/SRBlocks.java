@@ -1,8 +1,10 @@
 package brightspark.structuralrelocation.init;
 
 import brightspark.structuralrelocation.block.BlockAreaTeleporter;
+import brightspark.structuralrelocation.block.BlockCreativeGenerator;
 import brightspark.structuralrelocation.block.BlockSingleTeleporter;
 import brightspark.structuralrelocation.tileentity.TileAreaTeleporter;
+import brightspark.structuralrelocation.tileentity.TileCreativeGenerator;
 import brightspark.structuralrelocation.tileentity.TileSingleTeleporter;
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemBlock;
@@ -19,6 +21,7 @@ public class SRBlocks
 
     public static BlockSingleTeleporter singleTeleporter;
     public static BlockAreaTeleporter areaTeleporter;
+    public static BlockCreativeGenerator creativeGenerator;
 
     public static void regBlock(Block block)
     {
@@ -37,11 +40,13 @@ public class SRBlocks
 
         regBlock(singleTeleporter = new BlockSingleTeleporter());
         regBlock(areaTeleporter = new BlockAreaTeleporter());
+        regBlock(creativeGenerator = new BlockCreativeGenerator());
     }
 
     public static void regTileEntities()
     {
         regTE(TileSingleTeleporter.class, singleTeleporter);
         regTE(TileAreaTeleporter.class, areaTeleporter);
+        regTE(TileCreativeGenerator.class, creativeGenerator);
     }
 }

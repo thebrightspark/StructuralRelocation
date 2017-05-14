@@ -9,7 +9,7 @@ public class BlockAreaTeleporter extends AbstractBlockTeleporter
 {
     public BlockAreaTeleporter()
     {
-        super("areaTeleporter", Material.ROCK);
+        super("area_teleporter");
     }
 
     @Override

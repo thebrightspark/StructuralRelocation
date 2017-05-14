@@ -21,9 +21,9 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 public abstract class AbstractBlockTeleporter extends AbstractBlockContainer
 {
-    public AbstractBlockTeleporter(String name, Material mat)
+    public AbstractBlockTeleporter(String name)
     {
-        super(name, mat);
+        super(name, Material.IRON);
         setHasGui();
     }
 
