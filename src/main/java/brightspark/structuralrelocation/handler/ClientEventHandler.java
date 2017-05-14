@@ -28,10 +28,10 @@ public class ClientEventHandler
         while(heldItems.hasNext())
         {
             ItemStack held = heldItems.next();
-            if(held != null && held.getItem().equals(SRItems.itemSelector))
+            if(!held.isEmpty() && held.getItem().equals(SRItems.itemSelector))
                 return held;
         }
-        return null;
+        return ItemStack.EMPTY;
     }
 
     private static void renderBox(BlockPos pos, double partialTicks)
@@ -70,7 +70,7 @@ public class ClientEventHandler
     {
         //Get held Selector item
         ItemStack heldItem = getHeldSelector();
-        if(heldItem == null) return;
+        if(heldItem.isEmpty()) return;
 
         //Get selector mode
         ItemSelector.EnumSelection mode = ItemSelector.getMode(heldItem);

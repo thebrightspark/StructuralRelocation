@@ -229,8 +229,8 @@ public class GuiTeleporter extends GuiContainer
 
     protected void drawText()
     {
-        fontRendererObj.drawString(I18n.format(teleporter.getBlockType().getUnlocalizedName() + ".name"), 8, 6, textColour);
-        fontRendererObj.drawString(I18n.format("container.inventory"), 8, 82, textColour);
+        fontRenderer.drawString(I18n.format(teleporter.getBlockType().getUnlocalizedName() + ".name"), 8, 6, textColour);
+        fontRenderer.drawString(I18n.format("container.inventory"), 8, 82, textColour);
 
         //TODO: Draw any extra text
     }
@@ -314,7 +314,7 @@ public class GuiTeleporter extends GuiContainer
         public void drawButton(Minecraft mc, int mouseX, int mouseY)
         {
             if(!visible) return;
-            FontRenderer fontrenderer = mc.fontRendererObj;
+            FontRenderer fontrenderer = mc.fontRenderer;
             mc.getTextureManager().bindTexture(guiImage);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             this.hovered = mouseX >= xPosition && mouseY >= yPosition && mouseX < xPosition + width && mouseY < yPosition + height;
@@ -380,7 +380,6 @@ public class GuiTeleporter extends GuiContainer
 
         public void drawIcon(Minecraft mc)
         {
-            FontRenderer fontrenderer = mc.fontRendererObj;
             mc.getTextureManager().bindTexture(guiImage);
             //Draw background
             drawTexturedModalRect(posX, posY, iconX + (bg.ordinal() * size), iconY, size, size);

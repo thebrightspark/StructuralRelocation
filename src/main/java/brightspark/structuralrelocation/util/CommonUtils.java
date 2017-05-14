@@ -5,8 +5,6 @@ import brightspark.structuralrelocation.message.MessageGuiTeleport;
 import brightspark.structuralrelocation.message.MessageUpdateClientContainer;
 import brightspark.structuralrelocation.message.MessageUpdateTeleporterCurBlock;
 import brightspark.structuralrelocation.message.MessageUpdateTeleporterLocation;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
@@ -24,17 +22,6 @@ public class CommonUtils
         NETWORK.registerMessage(MessageGuiTeleport.Handler.class, MessageGuiTeleport.class, 1, Side.SERVER);
         NETWORK.registerMessage(MessageUpdateTeleporterLocation.Handler.class, MessageUpdateTeleporterLocation.class, 2, Side.CLIENT);
         NETWORK.registerMessage(MessageUpdateTeleporterCurBlock.Handler.class, MessageUpdateTeleporterCurBlock.class, 3, Side.CLIENT);
-    }
-
-    /**
-     * Clears all of the given keys from the stack's NBT.
-     */
-    public static void clearNBTKeys(ItemStack stack, String... keys)
-    {
-        NBTTagCompound tag = stack.getTagCompound();
-        if(tag == null) return;
-        for(String k : keys)
-            tag.removeTag(k);
     }
 
     /**
