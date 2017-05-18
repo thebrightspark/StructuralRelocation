@@ -54,13 +54,13 @@ public class MessageGuiTeleport implements IMessage
         @Override
         public IMessage onMessage(final MessageGuiTeleport message, final MessageContext ctx)
         {
-            final IThreadListener mainThread = ctx.getServerHandler().player.getServerWorld();
+            final IThreadListener mainThread = ctx.getServerHandler().playerEntity.getServerWorld();
             mainThread.addScheduledTask(new Runnable()
             {
                 @Override
                 public void run()
                 {
-                    WorldServer world = ctx.getServerHandler().player.getServerWorld();
+                    WorldServer world = ctx.getServerHandler().playerEntity.getServerWorld();
                     EntityPlayer player = world.getPlayerEntityByUUID(message.playerUUID);
                     if(player == null)
                     {

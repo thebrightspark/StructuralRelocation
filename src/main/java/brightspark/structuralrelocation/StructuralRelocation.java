@@ -7,7 +7,7 @@ import brightspark.structuralrelocation.init.SRRecipes;
 import brightspark.structuralrelocation.util.CommonUtils;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.init.Items;
-import net.minecraft.item.ItemStack;
+import net.minecraft.item.Item;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
@@ -28,9 +28,9 @@ public class StructuralRelocation
     public static final CreativeTabs SR_TAB = new CreativeTabs(MOD_ID)
     {
         @Override
-        public ItemStack getTabIconItem()
+        public Item getTabIconItem()
         {
-            return new ItemStack(Items.ENDER_PEARL);
+            return Items.ENDER_PEARL;
         }
 
         @Override

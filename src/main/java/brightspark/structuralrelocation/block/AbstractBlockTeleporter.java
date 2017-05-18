@@ -19,6 +19,8 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import javax.annotation.Nullable;
+
 public abstract class AbstractBlockTeleporter extends AbstractBlockContainer
 {
     public AbstractBlockTeleporter(String name)
@@ -39,13 +41,12 @@ public abstract class AbstractBlockTeleporter extends AbstractBlockContainer
     }
 
     @Override
-    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
+    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, @Nullable ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ)
     {
         //LogHelper.info("Item Activated With: " + (heldItem == null ? "Null" : heldItem.toString()));
-        ItemStack heldItem = playerIn.getHeldItem(hand);
-        if(!heldItem.isEmpty() && heldItem.getItem() instanceof ItemSelector)
+        if(heldItem != null && heldItem.getItem() instanceof ItemSelector)
             return false;
-        return super.onBlockActivated(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
+        return super.onBlockActivated(worldIn, pos, state, playerIn, hand, heldItem, side, hitX, hitY, hitZ);
 
         /*
         TileEntity te = world.getTileEntity(pos);
