@@ -14,10 +14,11 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.relauncher.Side;
 
 import java.util.Iterator;
 
-@Mod.EventBusSubscriber
+@Mod.EventBusSubscriber(Side.CLIENT)
 public class ClientEventHandler
 {
     private static Minecraft mc = Minecraft.getMinecraft();
