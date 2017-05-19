@@ -1,5 +1,7 @@
 package brightspark.structuralrelocation;
 
+import java.awt.*;
+
 public class Config
 {
     /**
@@ -11,4 +13,9 @@ public class Config
      * The amount of energy used to teleport each block
      */
     public static int energyPerBlockTeleport = 500;
+
+    /**
+     * The colour of the boxes which are rendered by the Selector and Debugger
+     */
+    public static Color boxRenderColour = new Color(0xFF0000);
 }

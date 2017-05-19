@@ -1,14 +1,19 @@
 package brightspark.structuralrelocation.handler;
 
+import brightspark.structuralrelocation.Config;
 import brightspark.structuralrelocation.Location;
 import brightspark.structuralrelocation.LocationArea;
 import brightspark.structuralrelocation.init.SRItems;
+import brightspark.structuralrelocation.item.ItemDebugger;
 import brightspark.structuralrelocation.item.ItemSelector;
+import brightspark.structuralrelocation.tileentity.TileAreaTeleporter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderGlobal;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -23,13 +28,13 @@ public class ClientEventHandler
 {
     private static Minecraft mc = Minecraft.getMinecraft();
 
-    private static ItemStack getHeldSelector()
+    private static ItemStack getHeldItem(Item item)
     {
         Iterator<ItemStack> heldItems = mc.player.getHeldEquipment().iterator();
         while(heldItems.hasNext())
         {
             ItemStack held = heldItems.next();
-            if(held != null && held.getItem().equals(SRItems.itemSelector))
+            if(held != null && held.getItem().equals(item))
                 return held;
         }
         return null;
@@ -60,8 +65,9 @@ public class ClientEventHandler
         GlStateManager.glLineWidth(5f);
         GlStateManager.disableTexture2D();
         GlStateManager.translate(-x, -y, -z);
-        RenderGlobal.renderFilledBox(box, 1f, 0f, 0f, 0.2f);
-        RenderGlobal.drawSelectionBoundingBox(box, 1f, 0f, 0f, 0.4f);
+        float[] rgb = Config.boxRenderColour.getRGBColorComponents(null);
+        RenderGlobal.renderFilledBox(box, rgb[0], rgb[1], rgb[2], 0.2f);
+        RenderGlobal.drawSelectionBoundingBox(box, rgb[0], rgb[1], rgb[2], 0.4f);
         GlStateManager.enableTexture2D();
         GlStateManager.popMatrix();
     }
@@ -70,24 +76,37 @@ public class ClientEventHandler
     public static void renderSelection(RenderWorldLastEvent event)
     {
         //Get held Selector item
-        ItemStack heldItem = getHeldSelector();
-        if(heldItem == null) return;
-
-        //Get selector mode
-        ItemSelector.EnumSelection mode = ItemSelector.getMode(heldItem);
-        if(mode == ItemSelector.EnumSelection.SINGLE)
+        ItemStack heldItem = getHeldItem(SRItems.itemSelector);
+        if(heldItem != null)
         {
-            Location location = ItemSelector.getTarget(heldItem);
-            if(location == null || location.dimensionId != mc.player.dimension) return;
-            //Render single selected position
-            renderBox(location.position, event.getPartialTicks());
+            //Get selector mode
+            ItemSelector.EnumSelection mode = ItemSelector.getMode(heldItem);
+            if(mode == ItemSelector.EnumSelection.SINGLE)
+            {
+                Location location = ItemSelector.getTarget(heldItem);
+                if(location == null || location.dimensionId != mc.player.dimension) return;
+                //Render single selected position
+                renderBox(location.position, event.getPartialTicks());
+            }
+            else
+            {
+                LocationArea area = ItemSelector.getArea(heldItem);
+                if(area == null || area.dimensionId != mc.player.dimension) return;
+                //Render selected area
+                renderBox(area.getStartingPoint(), area.getEndPoint().add(1, 1, 1), event.getPartialTicks());
+            }
         }
-        else
+
+        //Get held Debugger item
+        heldItem = getHeldItem(SRItems.itemDebugger);
+        if(heldItem != null)
         {
-            LocationArea area = ItemSelector.getArea(heldItem);
-            if(area == null || area.dimensionId != mc.player.dimension) return;
-            //Render selected area
-            renderBox(area.getStartingPoint(), area.getEndPoint().add(1, 1, 1), event.getPartialTicks());
+            //Get selected teleporter
+            Location location = ItemDebugger.getTeleporterLoc(heldItem);
+            if(location == null || location.dimensionId != mc.player.dimension) return;
+            TileEntity te = mc.world.getTileEntity(location.position);
+            if(te != null && te instanceof TileAreaTeleporter && ((TileAreaTeleporter) te).lastBlockInTheWay != null)
+                renderBox(((TileAreaTeleporter) te).lastBlockInTheWay, event.getPartialTicks());
         }
     }
 }

@@ -4,6 +4,7 @@ import brightspark.structuralrelocation.Location;
 import brightspark.structuralrelocation.LocationArea;
 import brightspark.structuralrelocation.block.BlockAreaTeleporter;
 import brightspark.structuralrelocation.block.BlockSingleTeleporter;
+import brightspark.structuralrelocation.tileentity.AbstractTileTeleporter;
 import brightspark.structuralrelocation.tileentity.TileAreaTeleporter;
 import brightspark.structuralrelocation.tileentity.TileSingleTeleporter;
 import brightspark.structuralrelocation.util.CommonUtils;
@@ -115,7 +116,7 @@ public class ItemSelector extends ItemBasic
         boolean hasTarget = getTarget(stack) != null;
         boolean hasArea = getArea(stack) != null;
         boolean flag = false;
-        if((hasTarget || hasArea) && te != null)
+        if((hasTarget || hasArea) && te != null && te instanceof AbstractTileTeleporter)
         {
             //Set target/area in block
             switch(getMode(stack))

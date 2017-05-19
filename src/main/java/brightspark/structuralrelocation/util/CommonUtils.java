@@ -1,10 +1,7 @@
 package brightspark.structuralrelocation.util;
 
 import brightspark.structuralrelocation.StructuralRelocation;
-import brightspark.structuralrelocation.message.MessageGuiTeleport;
-import brightspark.structuralrelocation.message.MessageUpdateClientContainer;
-import brightspark.structuralrelocation.message.MessageUpdateTeleporterCurBlock;
-import brightspark.structuralrelocation.message.MessageUpdateTeleporterLocation;
+import brightspark.structuralrelocation.message.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
@@ -22,6 +19,7 @@ public class CommonUtils
         NETWORK.registerMessage(MessageGuiTeleport.Handler.class, MessageGuiTeleport.class, 1, Side.SERVER);
         NETWORK.registerMessage(MessageUpdateTeleporterLocation.Handler.class, MessageUpdateTeleporterLocation.class, 2, Side.CLIENT);
         NETWORK.registerMessage(MessageUpdateTeleporterCurBlock.Handler.class, MessageUpdateTeleporterCurBlock.class, 3, Side.CLIENT);
+        NETWORK.registerMessage(MessageUpdateClientTeleporterObstruction.Handler.class, MessageUpdateClientTeleporterObstruction.class, 4, Side.CLIENT);
     }
 
     /**

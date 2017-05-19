@@ -2,11 +2,14 @@ package brightspark.structuralrelocation.tileentity;
 
 import brightspark.structuralrelocation.Location;
 import brightspark.structuralrelocation.LocationArea;
+import brightspark.structuralrelocation.message.MessageUpdateClientTeleporterObstruction;
+import brightspark.structuralrelocation.util.CommonUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -18,6 +21,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
     private LocationArea toMove;
     private Location target;
     private BlockPos curBlock, targetRelMax, toMoveMin;
+    public BlockPos lastBlockInTheWay;
 
     public void setAreaToMove(LocationArea area)
     {
@@ -58,15 +62,6 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         return curBlock != null;
     }
 
-    private boolean isAreaClear(BlockPos pos1, BlockPos pos2)
-    {
-        Iterator<BlockPos> positions = BlockPos.getAllInBox(pos1, pos2).iterator();
-        while(positions.hasNext())
-            if(!world.isAirBlock(positions.next()))
-                return false;
-        return true;
-    }
-
     @Override
     public void teleport(EntityPlayer player)
     {
@@ -91,13 +86,26 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
 
         //Check that the target area is completely clear
         //TODO: Check more precisely if the blocks can fit at the destination rather than just making sure the area is completely clear?
-        if(!isAreaClear(destinationStart, destinationEnd))
+        Iterator<BlockPos> positions = BlockPos.getAllInBox(destinationStart, destinationEnd).iterator();
+        while(positions.hasNext())
         {
-            player.sendMessage(new TextComponentString("Target area is not clear!\n" +
-                    "Position 1: " + destinationStart.toString() + "\n" +
-                    "Position 2: " + destinationEnd.toString()));
-            return;
+            BlockPos checkPos = positions.next();
+            if(!world.isAirBlock(checkPos))
+            {
+                lastBlockInTheWay = checkPos;
+                player.sendMessage(new TextComponentString("Target area is not clear!\n" +
+                        "Position 1: " + destinationStart.toString() + "\n" +
+                        "Position 2: " + destinationEnd.toString() + "\n" +
+                        "Found block ").appendSibling(new TextComponentTranslation(world.getBlockState(checkPos).getBlock().getUnlocalizedName() + ".name"))
+                        .appendText(" at " + checkPos.toString()));
+                //Update client teleporter so the Debugger item can be used
+                CommonUtils.NETWORK.sendToAll(new MessageUpdateClientTeleporterObstruction(pos, checkPos));
+                return;
+            }
         }
+
+        if(lastBlockInTheWay != null) CommonUtils.NETWORK.sendToAll(new MessageUpdateClientTeleporterObstruction(pos, null));
+        lastBlockInTheWay = null;
 
         //Start an area teleport
         curBlock = new BlockPos(0, 0, 0);
