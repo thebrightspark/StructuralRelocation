@@ -86,17 +86,18 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
 
         //Check that the target area is completely clear
         //TODO: Check more precisely if the blocks can fit at the destination rather than just making sure the area is completely clear?
+        WorldServer targetDim = world.getMinecraftServer().worldServerForDimension(target.dimensionId);
         Iterator<BlockPos> positions = BlockPos.getAllInBox(destinationStart, destinationEnd).iterator();
         while(positions.hasNext())
         {
             BlockPos checkPos = positions.next();
-            if(!world.isAirBlock(checkPos))
+            if(!targetDim.isAirBlock(checkPos))
             {
                 lastBlockInTheWay = checkPos;
                 player.sendMessage(new TextComponentString("Target area is not clear!\n" +
                         "Position 1: " + destinationStart.toString() + "\n" +
                         "Position 2: " + destinationEnd.toString() + "\n" +
-                        "Found block ").appendSibling(new TextComponentTranslation(world.getBlockState(checkPos).getBlock().getUnlocalizedName() + ".name"))
+                        "Found block ").appendSibling(new TextComponentTranslation(targetDim.getBlockState(checkPos).getBlock().getUnlocalizedName() + ".name"))
                         .appendText(" at " + checkPos.toString()));
                 //Update client teleporter so the Debugger item can be used
                 CommonUtils.NETWORK.sendToAll(new MessageUpdateClientTeleporterObstruction(pos, checkPos));
