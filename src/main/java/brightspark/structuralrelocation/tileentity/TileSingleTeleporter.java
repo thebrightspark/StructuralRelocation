@@ -33,21 +33,37 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
         return target != null && hasEnoughEnergy() && isDestinationClear(worldTo, target.position);
     }
 
-    @Override
-    public void teleport(EntityPlayer player)
+    private boolean doPreActionChecks()
     {
-        //Called from the block when right clicked
-        if(world.isRemote) return;
+        if(world.isRemote) return false;
         if(!canTeleport())
         {
             if(Config.debugTeleportMessages) LogHelper.info("Can not teleport. Either no target set or not enough power.");
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void teleport(EntityPlayer player)
+    {
         super.teleport(player);
-        if(isCopying)
-            copyBlock(pos.up(), target);
-        else
+        if(doPreActionChecks())
+        {
             teleportBlock(pos.up(), target);
+            if(Config.debugTeleportMessages) LogHelper.info("Block Teleported");
+        }
+    }
+
+    @Override
+    public void copy(EntityPlayer player)
+    {
+        super.copy(player);
+        if(doPreActionChecks())
+        {
+            copyBlock(pos.up(), target);
+            if(Config.debugTeleportMessages) LogHelper.info("Block Copied");
+        }
     }
 
     @Override

@@ -71,7 +71,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         return curBlock != null;
     }
 
-    private boolean doPreActionChecks(EntityPlayer player)
+    private boolean doPreActionChecks()
     {
         if(world.isRemote) return false;
         if(toMove == null || target == null || curBlock != null)
@@ -93,11 +93,15 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
             if(!isDestinationClear(targetDim, checkPos))
             {
                 lastBlockInTheWay = checkPos;
-                player.sendMessage(new TextComponentString("Target area is not clear!\n" +
-                        "Position 1: " + destinationStart.toString() + "\n" +
-                        "Position 2: " + destinationEnd.toString() + "\n" +
-                        "Found block ").appendSibling(new TextComponentTranslation(targetDim.getBlockState(checkPos).getBlock().getUnlocalizedName() + ".name"))
-                        .appendText(" at " + checkPos.toString()));
+                EntityPlayer player = getLastPlayer();
+                if(player != null)
+                {
+                    player.sendMessage(new TextComponentString("Target area is not clear!\n" +
+                            "Position 1: " + destinationStart.toString() + "\n" +
+                            "Position 2: " + destinationEnd.toString() + "\n" +
+                            "Found block ").appendSibling(new TextComponentTranslation(targetDim.getBlockState(checkPos).getBlock().getUnlocalizedName() + ".name"))
+                            .appendText(" at " + checkPos.toString()));
+                }
                 //Update client teleporter so the Debugger item can be used
                 CommonUtils.NETWORK.sendToAll(new MessageUpdateClientTeleporterObstruction(pos, checkPos));
                 if(Config.debugTeleportMessages) LogHelper.info("Can not teleport. Destination area contains an obstruction at " + checkPos.toString() + " in dimension " + targetDim.provider.getDimension());
@@ -119,16 +123,16 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
     public void teleport(EntityPlayer player)
     {
         super.teleport(player);
-        if(doPreActionChecks(player) && Config.debugTeleportMessages)
-            LogHelper.info("Area copy successfully started.");
+        if(doPreActionChecks() && Config.debugTeleportMessages)
+            LogHelper.info("Area teleportation successfully started.");
     }
 
     @Override
     public void copy(EntityPlayer player)
     {
         super.copy(player);
-        if(doPreActionChecks(player) && Config.debugTeleportMessages)
-            LogHelper.info("Area teleportation successfully started.");
+        if(doPreActionChecks() && Config.debugTeleportMessages)
+            LogHelper.info("Area copy successfully started.");
     }
 
     /**
