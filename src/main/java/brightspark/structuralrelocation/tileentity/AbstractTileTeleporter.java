@@ -21,7 +21,8 @@ import java.util.UUID;
 
 public abstract class AbstractTileTeleporter extends TileEntity
 {
-    protected EntityPlayer lastPlayer;
+    protected UUID lastPlayerUUID;
+    private EntityPlayer lastPlayer;
     /** True = copying, False = teleporting **/
     protected boolean isCopying;
     public SREnergyStorage energy;
@@ -41,19 +42,26 @@ public abstract class AbstractTileTeleporter extends TileEntity
         return world.getTileEntity(pos) == this && player.getDistanceSq((double)pos.getX() + 0.5D, (double)pos.getY() + 0.5D, (double)pos.getZ() + 0.5D) <= 64.0D;
     }
 
+    public EntityPlayer getLastPlayer()
+    {
+        if(lastPlayer != null) return lastPlayer;
+        if(lastPlayerUUID == null) return null;
+        return lastPlayer = world.getPlayerEntityByUUID(lastPlayerUUID);
+    }
+
     /**
      * Tries to start the teleporting
      * Player argument is the one who activated the block, and is used to send messages to
      */
     public void teleport(EntityPlayer player)
     {
-        lastPlayer = player;
+        lastPlayerUUID = player.getUniqueID();
         isCopying = false;
     }
 
     public void copy(EntityPlayer player)
     {
-        lastPlayer = player;
+        lastPlayerUUID = player.getUniqueID();
         isCopying = true;
     }
 
@@ -62,9 +70,9 @@ public abstract class AbstractTileTeleporter extends TileEntity
      */
     protected boolean canTeleportBlock(World world, BlockPos pos)
     {
-        if(!world.isBlockModifiable(lastPlayer, pos))
+        if(!world.isBlockModifiable(getLastPlayer(), pos))
         {
-            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block at " + pos.toString() + " -> No permission to modify block.");
+            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block " + world.getBlockState(pos).getBlock().getRegistryName().toString() + " at " + pos.toString() + " -> No permission to modify block.");
             return false;
         }
         return canCopyBlock(world, pos);
@@ -75,20 +83,21 @@ public abstract class AbstractTileTeleporter extends TileEntity
      */
     protected boolean canCopyBlock(World world, BlockPos pos)
     {
+        IBlockState state = world.getBlockState(pos);
+        String blockName = state.getBlock().getRegistryName().toString();
         if(world.isAirBlock(pos))
         {
-            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block at " + pos.toString() + " -> Is an air block.");
+            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block " + blockName + " at " + pos.toString() + " -> Is an air block.");
             return false;
         }
-        IBlockState state = world.getBlockState(pos);
-        if(!lastPlayer.capabilities.isCreativeMode || state.getBlock().getBlockHardness(state, world, pos) < 0)
+        if(!getLastPlayer().capabilities.isCreativeMode || state.getBlock().getBlockHardness(state, world, pos) < 0)
         {
-            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block at " + pos.toString() + " -> Block is unbreakable.");
+            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block " + blockName + " at " + pos.toString() + " -> Block is unbreakable.");
             return false;
         }
         if(isFluidSourceBlock(world, pos) && !Config.canTeleportFluids)
         {
-            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block at " + pos.toString() + " -> Block is a fluid source.");
+            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block " + blockName + " at " + pos.toString() + " -> Block is a fluid source.");
             return false;
         }
         return true;
@@ -99,14 +108,15 @@ public abstract class AbstractTileTeleporter extends TileEntity
      */
     protected boolean isDestinationClear(World world, BlockPos pos)
     {
-        if(!world.isBlockModifiable(lastPlayer, pos))
+        String blockName = world.getBlockState(pos).getBlock().getRegistryName().toString();
+        if(!world.isBlockModifiable(getLastPlayer(), pos))
         {
-            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block at " + pos.toString() + " in dimension " + world.provider.getDimension() + " -> No permission to modify destination.");
+            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block " + blockName + " at " + pos.toString() + " in dimension " + world.provider.getDimension() + " -> No permission to modify destination.");
             return false;
         }
         if(!world.isAirBlock(pos) || !world.getBlockState(pos).getBlock().isReplaceable(world, pos) || isFluidSourceBlock(world, pos))
         {
-            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block  at " + pos.toString() + " in dimension " + world.provider.getDimension() + " -> Destination block is air, not replaceable or is a fluid source block.");
+            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block " + blockName + " at " + pos.toString() + " in dimension " + world.provider.getDimension() + " -> Destination block is air, not replaceable or is a fluid source block.");
             return false;
         }
         return true;
@@ -279,11 +289,7 @@ public abstract class AbstractTileTeleporter extends TileEntity
         //Read energy
         energy.deserializeNBT(nbt.getCompoundTag("energy"));
         //Read last player
-        UUID uuid = nbt.getUniqueId("player");
-        if(uuid != null)
-            lastPlayer = world.getPlayerEntityByUUID(uuid);
-        else
-            lastPlayer = null;
+        if(nbt.hasKey("playerMost")) lastPlayerUUID = nbt.getUniqueId("player");
         //Read if copying
         isCopying = nbt.getBoolean("isCopying");
     }
@@ -294,8 +300,7 @@ public abstract class AbstractTileTeleporter extends TileEntity
         //Write energy
         nbt.setTag("energy", energy.serializeNBT());
         //Write last player
-        if(lastPlayer != null)
-            nbt.setUniqueId("player", lastPlayer.getUniqueID());
+        if(lastPlayerUUID != null) nbt.setUniqueId("player", lastPlayerUUID);
         //Write if copying
         nbt.setBoolean("isCopying", isCopying);
 

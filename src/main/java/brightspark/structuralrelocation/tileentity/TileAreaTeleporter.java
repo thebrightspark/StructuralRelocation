@@ -187,7 +187,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
             toMovePos = curBlock == null ? null : toMoveMin.add(curBlock);
         }
         //Skip air and unbreakable blocks
-        while(curBlock != null && (worldTo.isAirBlock(toMovePos) || worldTo.getBlockState(toMovePos).getBlockHardness(worldTo, toMovePos) < 0));
+        while(curBlock != null && !(isCopying ? canCopyBlock(world, toMovePos) : canTeleportBlock(world, toMovePos)));
 
         if(curBlock == null && Config.debugTeleportMessages) LogHelper.info("Area " + (isCopying ? "copying" : "teleportation") + " complete.");
 
