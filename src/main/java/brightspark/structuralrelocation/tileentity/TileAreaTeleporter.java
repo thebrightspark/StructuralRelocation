@@ -1,9 +1,11 @@
 package brightspark.structuralrelocation.tileentity;
 
+import brightspark.structuralrelocation.Config;
 import brightspark.structuralrelocation.Location;
 import brightspark.structuralrelocation.LocationArea;
 import brightspark.structuralrelocation.message.MessageUpdateClientTeleporterObstruction;
 import brightspark.structuralrelocation.util.CommonUtils;
+import brightspark.structuralrelocation.util.LogHelper;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ITickable;
@@ -23,9 +25,13 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
     private BlockPos curBlock, targetRelMax, toMoveMin;
     public BlockPos lastBlockInTheWay;
 
+    private boolean checkedEnergy = false;
+
     public void setAreaToMove(LocationArea area)
     {
-        if(area != null) toMove = area;
+        if(area == null) return;
+        toMove = area;
+        markDirty();
     }
 
     public LocationArea getAreaToMove()
@@ -35,7 +41,9 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
 
     public void setTarget(Location target)
     {
-        if(target != null) this.target = target;
+        if(target == null) return;
+        this.target = target;
+        markDirty();
     }
 
     public Location getTarget()
@@ -50,6 +58,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
     public void setCurBlock(BlockPos pos)
     {
         curBlock = pos;
+        markDirty();
     }
 
     public BlockPos getCurBlock()
@@ -66,8 +75,14 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
     public void teleport(EntityPlayer player)
     {
         //Called from the block when right clicked
-        if(world.isRemote || toMove == null || target == null || curBlock != null)
+        if(world.isRemote) return;
+        if(toMove == null || target == null || curBlock != null)
+        {
+            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport. Either no target set or no area set.");
             return;
+        }
+
+        super.teleport(player);
 
         BlockPos destinationStart = target.position;
         BlockPos destinationEnd = destinationStart.add(toMove.getRelativeEndPoint());
@@ -101,6 +116,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
                         .appendText(" at " + checkPos.toString()));
                 //Update client teleporter so the Debugger item can be used
                 CommonUtils.NETWORK.sendToAll(new MessageUpdateClientTeleporterObstruction(pos, checkPos));
+                if(Config.debugTeleportMessages) LogHelper.info("Can not teleport. Destination area contains an obstruction at " + checkPos.toString() + " in dimension " + targetDim.provider.getDimension());
                 return;
             }
         }
@@ -112,6 +128,8 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         curBlock = new BlockPos(0, 0, 0);
         targetRelMax = toMove.getRelativeEndPoint();
         toMoveMin = toMove.getStartingPoint();
+
+        if(Config.debugTeleportMessages) LogHelper.info("Area teleportation successfully started.");
     }
 
     /**
@@ -120,18 +138,31 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
     public void stop()
     {
         curBlock = null;
+        markDirty();
+        if(Config.debugTeleportMessages) LogHelper.info("Teleportation stopped.");
     }
 
     @Override
     public void update()
     {
-        if(world.isRemote || curBlock == null || !hasEnoughEnergy()) return;
+        if(world.isRemote || curBlock == null) return;
+        if(!hasEnoughEnergy())
+        {
+            if(Config.debugTeleportMessages && !checkedEnergy)
+            {
+                LogHelper.info("Can not teleport. Not enough power.");
+                checkedEnergy = true;
+            }
+            return;
+        }
+
+        checkedEnergy = false;
 
         //Teleport the block
-        WorldServer server = world.getMinecraftServer().worldServerForDimension(target.dimensionId);
+        WorldServer worldTo = world.getMinecraftServer().worldServerForDimension(target.dimensionId);
         BlockPos toMovePos = toMoveMin.add(curBlock);
         BlockPos targetPos = target.position.add(curBlock);
-        teleportBlock(toMovePos, new Location(target.dimensionId, targetPos));
+        teleportBlock(toMovePos, worldTo, targetPos);
 
         do
         {
@@ -154,7 +185,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
             toMovePos = curBlock == null ? null : toMoveMin.add(curBlock);
         }
         //Skip air and unbreakable blocks
-        while(curBlock != null && (server.isAirBlock(toMovePos) || server.getBlockState(toMovePos).getBlockHardness(server, toMovePos) < 0));
+        while(curBlock != null && (worldTo.isAirBlock(toMovePos) || worldTo.getBlockState(toMovePos).getBlockHardness(worldTo, toMovePos) < 0));
 
         markDirty();
     }

@@ -1,6 +1,8 @@
 package brightspark.structuralrelocation.tileentity;
 
+import brightspark.structuralrelocation.Config;
 import brightspark.structuralrelocation.Location;
+import brightspark.structuralrelocation.util.LogHelper;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
@@ -16,6 +18,7 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
     public void setTarget(Location location)
     {
         target = location;
+        markDirty();
     }
 
     public Location getTarget()
@@ -25,19 +28,21 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
 
     private boolean canTeleport()
     {
-        BlockPos blockPos = pos.up();
-        IBlockState state = world.getBlockState(blockPos);
-        return target != null && state.getMaterial() != Material.AIR && !(state.getBlock() instanceof IFluidBlock) && state.getBlockHardness(world, blockPos) >= 0 && hasEnoughEnergy();
+        return target != null && hasEnoughEnergy();
     }
 
     @Override
     public void teleport(EntityPlayer player)
     {
         //Called from the block when right clicked
-        if(world.isRemote || !canTeleport()) return;
+        if(world.isRemote) return;
+        if(!canTeleport())
+        {
+            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport. Either no target set or not enough power.");
+            return;
+        }
+        super.teleport(player);
         teleportBlock(pos.up(), target);
-        player.sendMessage(new TextComponentString("Block Teleported"));
-        markDirty();
     }
 
     @Override

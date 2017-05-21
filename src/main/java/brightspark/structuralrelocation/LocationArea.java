@@ -64,11 +64,11 @@ public class LocationArea implements INBTSerializable<NBTTagCompound>
         switch(axis)
         {
             case X:
-                return maxPos.getX() - minPos.getX();
+                return maxPos.getX() - minPos.getX() + 1;
             case Y:
-                return maxPos.getY() - minPos.getY();
+                return maxPos.getY() - minPos.getY() + 1;
             case Z:
-                return maxPos.getZ() - minPos.getZ();
+                return maxPos.getZ() - minPos.getZ() + 1;
             default:
                 LogHelper.error("Unhandled axis!?");
                 return -1;

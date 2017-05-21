@@ -10,13 +10,16 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.energy.CapabilityEnergy;
+import net.minecraftforge.fluids.IFluidBlock;
 
 public abstract class AbstractTileTeleporter extends TileEntity
 {
+    protected EntityPlayer lastPlayer;
     public SREnergyStorage energy;
+
 
     public AbstractTileTeleporter()
     {
@@ -37,21 +40,51 @@ public abstract class AbstractTileTeleporter extends TileEntity
      * Tries to start the teleporting
      * Player argument is the one who activated the block, and is used to send messages to
      */
-    public abstract void teleport(EntityPlayer player);
+    public void teleport(EntityPlayer player)
+    {
+        lastPlayer = player;
+    }
 
     /**
-     * Teleports the block in the given world and position to the given location
+     * Checks that the block can be teleported by the player who started the teleport
+     */
+    public boolean canTeleportBlock(World world, BlockPos pos)
+    {
+        if(!world.isBlockModifiable(lastPlayer, pos) || world.isAirBlock(pos)) return false;
+        IBlockState state = world.getBlockState(pos);
+        return (lastPlayer.capabilities.isCreativeMode || state.getBlock().getBlockHardness(state, world, pos) >= 0) && (!(state.getBlock() instanceof IFluidBlock) || Config.canTeleportFluids);
+    }
+
+    /**
+     * Teleports the block to the given location
      */
     protected void teleportBlock(BlockPos from, Location to)
     {
-        teleportBlock(from, to, true);
+        teleportBlock(from, world.getMinecraftServer().worldServerForDimension(to.dimensionId), to.position);
     }
 
-    protected void teleportBlock(BlockPos from, Location to, boolean moveTileEntities)
+    /**
+     * Teleports the block to the given location
+     */
+    protected void teleportBlock(BlockPos from, World worldTo, BlockPos to)
     {
-        useEnergy();
+        teleportBlock(from, worldTo, to, true);
+    }
+
+    /**
+     * Teleports the block to the given location
+     */
+    protected void teleportBlock(BlockPos from, World worldTo, BlockPos to, boolean moveTileEntities)
+    {
+        if(!canTeleportBlock(world, from))
+        {
+            if(Config.debugTeleportMessages) LogHelper.info("Not able to teleport block at " + from.toString() + ". Either no permission, is air, is a fluid and config disallows it, or player is not creative and block is unbreakable.");
+            return;
+        }
         IBlockState state = world.getBlockState(from);
         TileEntity te = world.getTileEntity(from);
+        //If not moving tile entities, and this block has one, then don't move it
+        if(!moveTileEntities && te != null) return;
         TileEntity newTe = null;
         if(te != null)
         {
@@ -71,12 +104,13 @@ public abstract class AbstractTileTeleporter extends TileEntity
         }
 
         //Set the new block and tile entity
-        WorldServer worldTo = world.getMinecraftServer().worldServerForDimension(to.dimensionId);
-        worldTo.setBlockState(to.position, state);
-        worldTo.setTileEntity(to.position, newTe);
+        worldTo.setBlockState(to, state);
+        worldTo.setTileEntity(to, newTe);
         //Remove the old block and tile entity
         world.removeTileEntity(from);
         world.setBlockToAir(from);
+        useEnergy();
+        if(Config.debugTeleportMessages) LogHelper.info("Successfully teleported block from " + from.toString() + " to " + to.toString() + " in dimension " + worldTo.provider.getDimension());
     }
 
     protected void copyBlock(BlockPos from, Location to)
@@ -110,6 +144,7 @@ public abstract class AbstractTileTeleporter extends TileEntity
     protected void useEnergy()
     {
         energy.modifyEnergy(-Config.energyPerBlockTeleport);
+        markDirty();
     }
 
     public void setEnergy(int amount)
