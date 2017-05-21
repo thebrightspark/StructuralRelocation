@@ -3,7 +3,9 @@ package brightspark.structuralrelocation;
 import brightspark.structuralrelocation.util.LogHelper;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.common.util.INBTSerializable;
 
 public class LocationArea implements INBTSerializable<NBTTagCompound>
@@ -94,6 +96,19 @@ public class LocationArea implements INBTSerializable<NBTTagCompound>
     public boolean isEqual(LocationArea area)
     {
         return area != null && area.dimensionId == dimensionId && area.pos1.equals(pos1) && area.pos2.equals(pos2);
+    }
+
+    /**
+     * Checks if the block position is adjacent to the area
+     */
+    public boolean isAdjacent(BlockPos pos)
+    {
+        Vec3d posVec = new Vec3d((double) pos.getX() + 0.5d, (double) pos.getY() + 0.5d, (double) pos.getZ() + 0.5d);
+        AxisAlignedBB areaBox = new AxisAlignedBB(getStartingPoint(), getEndPoint().add(1, 1, 1));
+        AxisAlignedBB areaBoxBigger = areaBox.expandXyz(1d);
+        boolean isOutsideArea = !areaBox.isVecInside(posVec);
+        boolean isOnEdgeOfArea = areaBoxBigger.isVecInside(posVec);
+        return isOutsideArea && isOnEdgeOfArea;
     }
 
     @Override

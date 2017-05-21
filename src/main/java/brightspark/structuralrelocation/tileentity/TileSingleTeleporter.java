@@ -44,7 +44,10 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
             return;
         }
         super.teleport(player);
-        teleportBlock(pos.up(), target);
+        if(isCopying)
+            copyBlock(pos.up(), target);
+        else
+            teleportBlock(pos.up(), target);
     }
 
     @Override

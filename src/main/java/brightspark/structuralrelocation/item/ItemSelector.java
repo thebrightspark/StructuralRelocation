@@ -124,9 +124,16 @@ public class ItemSelector extends ItemBasic
                 case AREA:
                     //Set area
                     if(!hasArea) break;
+                    //Make sure the area is in the same dimension as the teleporter
+                    LocationArea area = getArea(stack);
+                    if(area.dimensionId != world.provider.getDimension() || !area.isAdjacent(pos))
+                    {
+                        player.sendMessage(new TextComponentString("Area to teleport must be adjacent to the teleporter!"));
+                        break;
+                    }
                     flag = true;
                     if(te instanceof TileAreaTeleporter)
-                        ((TileAreaTeleporter) te).setAreaToMove(getArea(stack));
+                        ((TileAreaTeleporter) te).setAreaToMove(area);
                     player.sendMessage(new TextComponentString("Teleporter Area Set!"));
                     break;
                 case SINGLE:

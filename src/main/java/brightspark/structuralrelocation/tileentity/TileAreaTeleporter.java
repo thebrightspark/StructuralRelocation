@@ -71,33 +71,17 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         return curBlock != null;
     }
 
-    @Override
-    public void teleport(EntityPlayer player)
+    private boolean doPreActionChecks(EntityPlayer player)
     {
-        //Called from the block when right clicked
-        if(world.isRemote) return;
+        if(world.isRemote) return false;
         if(toMove == null || target == null || curBlock != null)
         {
             if(Config.debugTeleportMessages) LogHelper.info("Can not teleport. Either no target set or no area set.");
-            return;
+            return false;
         }
-
-        super.teleport(player);
 
         BlockPos destinationStart = target.position;
         BlockPos destinationEnd = destinationStart.add(toMove.getRelativeEndPoint());
-
-        //COMMENTED OUT: I don't think I actually need to check intersection? Just so long as the destination area is clear.
-        //Check that the target area will not intersect with the area to move
-        /*
-        AxisAlignedBB selection = new AxisAlignedBB(toMove.pos1, toMove.pos2);
-        AxisAlignedBB destination = new AxisAlignedBB(destinationStart, destinationEnd);
-        if(selection.intersectsWith(destination))
-        {
-            player.sendMessage(new TextComponentString("Area to be moved must not intersect the destination area!"));
-            return;
-        }
-        */
 
         //Check that the target area is completely clear
         //TODO: Check more precisely if the blocks can fit at the destination rather than just making sure the area is completely clear?
@@ -117,7 +101,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
                 //Update client teleporter so the Debugger item can be used
                 CommonUtils.NETWORK.sendToAll(new MessageUpdateClientTeleporterObstruction(pos, checkPos));
                 if(Config.debugTeleportMessages) LogHelper.info("Can not teleport. Destination area contains an obstruction at " + checkPos.toString() + " in dimension " + targetDim.provider.getDimension());
-                return;
+                return false;
             }
         }
 
@@ -128,8 +112,20 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         curBlock = new BlockPos(0, 0, 0);
         targetRelMax = toMove.getRelativeEndPoint();
         toMoveMin = toMove.getStartingPoint();
+        if(Config.debugTeleportMessages) LogHelper.info("Area " + (isCopying ? "copy" : "teleportation") + " successfully started.");
+        return true;
+    }
 
-        if(Config.debugTeleportMessages) LogHelper.info("Area teleportation successfully started.");
+    @Override
+    public void teleport(EntityPlayer player)
+    {
+        if(doPreActionChecks(player)) super.teleport(player);
+    }
+
+    @Override
+    public void copy(EntityPlayer player)
+    {
+        if(doPreActionChecks(player)) super.copy(player);
     }
 
     /**
@@ -162,7 +158,10 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         WorldServer worldTo = world.getMinecraftServer().worldServerForDimension(target.dimensionId);
         BlockPos toMovePos = toMoveMin.add(curBlock);
         BlockPos targetPos = target.position.add(curBlock);
-        teleportBlock(toMovePos, worldTo, targetPos);
+        if(isCopying)
+            copyBlock(toMovePos, worldTo, targetPos);
+        else
+            teleportBlock(toMovePos, worldTo, targetPos);
 
         do
         {
@@ -187,7 +186,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         //Skip air and unbreakable blocks
         while(curBlock != null && (worldTo.isAirBlock(toMovePos) || worldTo.getBlockState(toMovePos).getBlockHardness(worldTo, toMovePos) < 0));
 
-        if(curBlock == null && Config.debugTeleportMessages) LogHelper.info("Area teleportation complete.");
+        if(curBlock == null && Config.debugTeleportMessages) LogHelper.info("Area " + (isCopying ? "copying" : "teleportation") + " complete.");
 
         markDirty();
     }

@@ -55,17 +55,16 @@ public class GuiTeleporter extends GuiContainer
     {
         super.initGui();
 
-        //TODO: Re-implement Copy button (Remove setting 'enabled' state to false for the Copy buttons)
         if(isAreaTeleporter)
         {
             buttonList.add(new Button(25, 57, "Teleport"));
-            buttonList.add(new Button(74, 57, "Copy", false));
+            buttonList.add(new Button(74, 57, "Copy"));
             buttonList.add(new Button(123, 57, "Stop", false));
         }
         else
         {
             buttonList.add(new Button(41, 57, "Teleport"));
-            buttonList.add(new Button(107, 57, "Copy", false));
+            buttonList.add(new Button(107, 57, "Copy"));
         }
 
         /*
@@ -183,7 +182,9 @@ public class GuiTeleporter extends GuiContainer
             {
                 case 0: //Teleport
                     button.enabled = !isActive && hasEnergy && hasTargets;
-                case 1: //Copy (Do nothing for now while unimplemented) TODO: Re-implement Copy button
+                    break;
+                case 1: //Copy
+                    button.enabled = mc.player.capabilities.isCreativeMode && !isActive && hasEnergy && hasTargets;
                     break;
                 case 2: //Stop
                     button.enabled = isActive;
@@ -256,21 +257,6 @@ public class GuiTeleporter extends GuiContainer
     @Override
     protected void actionPerformed(GuiButton button) throws IOException
     {
-        switch(button.id)
-        {
-            case 0: //Teleport
-
-                break;
-            case 1: //Copy
-
-                break;
-            case 2: //Stop
-
-                break;
-            default:
-                LogHelper.warn("Unhandled client button click '" + button.id + "' for teleporter GUI!");
-        }
-
         CommonUtils.NETWORK.sendToServer(new MessageGuiTeleport(button.id, mc.player, teleporter.getPos()));
     }
 

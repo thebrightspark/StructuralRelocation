@@ -8,6 +8,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IThreadListener;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
@@ -82,7 +83,10 @@ public class MessageGuiTeleport implements IMessage
                             teleporter.teleport(player);
                             break;
                         case 1: //Copy
-                            //Do nothing atm
+                            if(player.capabilities.isCreativeMode)
+                                teleporter.copy(player);
+                            else
+                                player.sendMessage(new TextComponentString("You must be in creative to copy blocks at the moment!"));
                             break;
                         case 2: //Stop
                             if(teleporter instanceof TileAreaTeleporter)

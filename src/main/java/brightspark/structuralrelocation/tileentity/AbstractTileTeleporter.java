@@ -17,11 +17,14 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.fluids.IFluidBlock;
 
+import java.util.UUID;
+
 public abstract class AbstractTileTeleporter extends TileEntity
 {
     protected EntityPlayer lastPlayer;
+    /** True = copying, False = teleporting **/
+    protected boolean isCopying;
     public SREnergyStorage energy;
-
 
     public AbstractTileTeleporter()
     {
@@ -45,6 +48,13 @@ public abstract class AbstractTileTeleporter extends TileEntity
     public void teleport(EntityPlayer player)
     {
         lastPlayer = player;
+        isCopying = false;
+    }
+
+    public void copy(EntityPlayer player)
+    {
+        lastPlayer = player;
+        isCopying = true;
     }
 
     /**
@@ -52,10 +62,36 @@ public abstract class AbstractTileTeleporter extends TileEntity
      */
     protected boolean canTeleportBlock(World world, BlockPos pos)
     {
-        if(!world.isBlockModifiable(lastPlayer, pos) || world.isAirBlock(pos)) return false;
+        if(!world.isBlockModifiable(lastPlayer, pos))
+        {
+            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block at " + pos.toString() + " -> No permission to modify block.");
+            return false;
+        }
+        return canCopyBlock(world, pos);
+    }
+
+    /**
+     * Checks that the block can be copied by the player who started the copy
+     */
+    protected boolean canCopyBlock(World world, BlockPos pos)
+    {
+        if(world.isAirBlock(pos))
+        {
+            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block at " + pos.toString() + " -> Is an air block.");
+            return false;
+        }
         IBlockState state = world.getBlockState(pos);
-        return (lastPlayer.capabilities.isCreativeMode || state.getBlock().getBlockHardness(state, world, pos) >= 0) &&
-                (!isFluid(world, pos) ||(isFluidSourceBlock(world, pos) && Config.canTeleportFluids));
+        if(!lastPlayer.capabilities.isCreativeMode || state.getBlock().getBlockHardness(state, world, pos) < 0)
+        {
+            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block at " + pos.toString() + " -> Block is unbreakable.");
+            return false;
+        }
+        if(isFluidSourceBlock(world, pos) && !Config.canTeleportFluids)
+        {
+            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block at " + pos.toString() + " -> Block is a fluid source.");
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -63,7 +99,17 @@ public abstract class AbstractTileTeleporter extends TileEntity
      */
     protected boolean isDestinationClear(World world, BlockPos pos)
     {
-        return world.isBlockModifiable(lastPlayer, pos) && (world.isAirBlock(pos) || world.getBlockState(pos).getBlock().isReplaceable(world, pos)) && !isFluidSourceBlock(world, pos);
+        if(!world.isBlockModifiable(lastPlayer, pos))
+        {
+            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block at " + pos.toString() + " in dimension " + world.provider.getDimension() + " -> No permission to modify destination.");
+            return false;
+        }
+        if(!world.isAirBlock(pos) || !world.getBlockState(pos).getBlock().isReplaceable(world, pos) || isFluidSourceBlock(world, pos))
+        {
+            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block  at " + pos.toString() + " in dimension " + world.provider.getDimension() + " -> Destination block is air, not replaceable or is a fluid source block.");
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -107,15 +153,42 @@ public abstract class AbstractTileTeleporter extends TileEntity
      */
     protected void teleportBlock(BlockPos from, World worldTo, BlockPos to, boolean moveTileEntities)
     {
-        if(!canTeleportBlock(world, from))
-        {
-            if(Config.debugTeleportMessages) LogHelper.info("Not able to teleport block at " + from.toString() + ". Either no permission, is air, is a fluid and config disallows it, or player is not creative and block is unbreakable.");
-            return;
-        }
+        if(doTeleporterAction(from, worldTo, to, moveTileEntities, true) && Config.debugTeleportMessages)
+            LogHelper.info("Successfully teleported block from " + from.toString() + " to " + to.toString() + " in dimension " + worldTo.provider.getDimension());
+    }
+
+    /**
+     * Copy the block to the given location
+     */
+    protected void copyBlock(BlockPos from, Location to)
+    {
+        copyBlock(from, world.getMinecraftServer().worldServerForDimension(to.dimensionId), to.position);
+    }
+
+    /**
+     * Copy the block to the given location
+     */
+    protected void copyBlock(BlockPos from, World worldTo, BlockPos to)
+    {
+        copyBlock(from, worldTo, to, true);
+    }
+
+    /**
+     * Copy the block to the given location
+     */
+    protected void copyBlock(BlockPos from, World worldTo, BlockPos to, boolean copyTileEntities)
+    {
+        if(doTeleporterAction(from, worldTo, to, copyTileEntities, false) && Config.debugTeleportMessages)
+            LogHelper.info("Successfully copied block from " + from.toString() + " to " + to.toString() + " in dimension " + worldTo.provider.getDimension());
+    }
+
+    private boolean doTeleporterAction(BlockPos from, World worldTo, BlockPos to, boolean handleTileEntities, boolean removeBlocks)
+    {
+        if(removeBlocks ? !canTeleportBlock(world, from) : !canCopyBlock(world, from)) return false;
         IBlockState state = world.getBlockState(from);
         TileEntity te = world.getTileEntity(from);
-        //If not moving tile entities, and this block has one, then don't move it
-        if(!moveTileEntities && te != null) return;
+        //If not handling tile entities, and this block has one, then don't do anything to it
+        if(!handleTileEntities && te != null) return false;
         TileEntity newTe = null;
         if(te != null)
         {
@@ -131,22 +204,21 @@ public abstract class AbstractTileTeleporter extends TileEntity
             {
                 LogHelper.error("Couldn't create a new instance of the TileEntity at " + from.toString());
                 e.printStackTrace();
+                return false;
             }
         }
 
         //Set the new block and tile entity
         worldTo.setBlockState(to, state);
-        worldTo.setTileEntity(to, newTe);
-        //Remove the old block and tile entity
-        world.removeTileEntity(from);
-        world.setBlockToAir(from);
+        if(newTe != null) worldTo.setTileEntity(to, newTe);
+        if(removeBlocks)
+        {
+            //Remove the old block and tile entity
+            world.removeTileEntity(from);
+            world.setBlockToAir(from);
+        }
         useEnergy();
-        if(Config.debugTeleportMessages) LogHelper.info("Successfully teleported block from " + from.toString() + " to " + to.toString() + " in dimension " + worldTo.provider.getDimension());
-    }
-
-    protected void copyBlock(BlockPos from, Location to)
-    {
-        //TODO: Copy block method
+        return true;
     }
 
     public int getEnergyStored()
@@ -206,6 +278,14 @@ public abstract class AbstractTileTeleporter extends TileEntity
 
         //Read energy
         energy.deserializeNBT(nbt.getCompoundTag("energy"));
+        //Read last player
+        UUID uuid = nbt.getUniqueId("player");
+        if(uuid != null)
+            lastPlayer = world.getPlayerEntityByUUID(uuid);
+        else
+            lastPlayer = null;
+        //Read if copying
+        isCopying = nbt.getBoolean("isCopying");
     }
 
     @Override
@@ -213,6 +293,11 @@ public abstract class AbstractTileTeleporter extends TileEntity
     {
         //Write energy
         nbt.setTag("energy", energy.serializeNBT());
+        //Write last player
+        if(lastPlayer != null)
+            nbt.setUniqueId("player", lastPlayer.getUniqueID());
+        //Write if copying
+        nbt.setBoolean("isCopying", isCopying);
 
         return super.writeToNBT(nbt);
     }
