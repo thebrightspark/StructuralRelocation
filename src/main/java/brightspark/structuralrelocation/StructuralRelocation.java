@@ -19,7 +19,7 @@ public class StructuralRelocation
 {
     public static final String MOD_ID = "structuralrelocation";
     public static final String MOD_NAME = "Structural Relocation";
-    public static final String VERSION = "1.10.2-0.0.9";
+    public static final String VERSION = "1.10.2-0.0.9.1";
     public static final String GUI_TEXTURE_DIR = "textures/gui/";
 
     @Mod.Instance(MOD_ID)

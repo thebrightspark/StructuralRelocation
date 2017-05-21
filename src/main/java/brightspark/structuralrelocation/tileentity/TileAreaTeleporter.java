@@ -112,20 +112,23 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         curBlock = new BlockPos(0, 0, 0);
         targetRelMax = toMove.getRelativeEndPoint();
         toMoveMin = toMove.getStartingPoint();
-        if(Config.debugTeleportMessages) LogHelper.info("Area " + (isCopying ? "copy" : "teleportation") + " successfully started.");
         return true;
     }
 
     @Override
     public void teleport(EntityPlayer player)
     {
-        if(doPreActionChecks(player)) super.teleport(player);
+        super.teleport(player);
+        if(doPreActionChecks(player) && Config.debugTeleportMessages)
+            LogHelper.info("Area copy successfully started.");
     }
 
     @Override
     public void copy(EntityPlayer player)
     {
-        if(doPreActionChecks(player)) super.copy(player);
+        super.copy(player);
+        if(doPreActionChecks(player) && Config.debugTeleportMessages)
+            LogHelper.info("Area teleportation successfully started.");
     }
 
     /**
