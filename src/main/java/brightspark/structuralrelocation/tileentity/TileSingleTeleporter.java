@@ -9,6 +9,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.fluids.IFluidBlock;
 
 public class TileSingleTeleporter extends AbstractTileTeleporter
@@ -28,7 +29,8 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
 
     private boolean canTeleport()
     {
-        return target != null && hasEnoughEnergy();
+        WorldServer worldTo = world.getMinecraftServer().worldServerForDimension(target.dimensionId);
+        return target != null && hasEnoughEnergy() && isDestinationClear(worldTo, target.position);
     }
 
     @Override

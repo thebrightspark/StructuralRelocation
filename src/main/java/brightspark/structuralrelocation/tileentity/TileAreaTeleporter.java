@@ -106,7 +106,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         while(positions.hasNext())
         {
             BlockPos checkPos = positions.next();
-            if(!targetDim.isAirBlock(checkPos))
+            if(!isDestinationClear(targetDim, checkPos))
             {
                 lastBlockInTheWay = checkPos;
                 player.sendMessage(new TextComponentString("Target area is not clear!\n" +
@@ -186,6 +186,8 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         }
         //Skip air and unbreakable blocks
         while(curBlock != null && (worldTo.isAirBlock(toMovePos) || worldTo.getBlockState(toMovePos).getBlockHardness(worldTo, toMovePos) < 0));
+
+        if(curBlock == null && Config.debugTeleportMessages) LogHelper.info("Area teleportation complete.");
 
         markDirty();
     }

@@ -7,7 +7,7 @@ public class Config
     /**
      * If true, then debug messages will be printed to the console about teleportation for every block
      */
-    public static boolean debugTeleportMessages = false;
+    public static boolean debugTeleportMessages = true;
 
     /**
      * Whether the teleporters can move fluids

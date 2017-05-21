@@ -4,6 +4,8 @@ import brightspark.structuralrelocation.Config;
 import brightspark.structuralrelocation.Location;
 import brightspark.structuralrelocation.SREnergyStorage;
 import brightspark.structuralrelocation.util.LogHelper;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -48,11 +50,40 @@ public abstract class AbstractTileTeleporter extends TileEntity
     /**
      * Checks that the block can be teleported by the player who started the teleport
      */
-    public boolean canTeleportBlock(World world, BlockPos pos)
+    protected boolean canTeleportBlock(World world, BlockPos pos)
     {
         if(!world.isBlockModifiable(lastPlayer, pos) || world.isAirBlock(pos)) return false;
         IBlockState state = world.getBlockState(pos);
-        return (lastPlayer.capabilities.isCreativeMode || state.getBlock().getBlockHardness(state, world, pos) >= 0) && (!(state.getBlock() instanceof IFluidBlock) || Config.canTeleportFluids);
+        return (lastPlayer.capabilities.isCreativeMode || state.getBlock().getBlockHardness(state, world, pos) >= 0) &&
+                (!isFluid(world, pos) ||(isFluidSourceBlock(world, pos) && Config.canTeleportFluids));
+    }
+
+    /**
+     * Checks if a block can be teleported to the location
+     */
+    protected boolean isDestinationClear(World world, BlockPos pos)
+    {
+        return world.isBlockModifiable(lastPlayer, pos) && (world.isAirBlock(pos) || world.getBlockState(pos).getBlock().isReplaceable(world, pos)) && !isFluidSourceBlock(world, pos);
+    }
+
+    /**
+     * Checks if the block is a fluid
+     */
+    public static boolean isFluid(World world, BlockPos pos)
+    {
+        Block block = world.getBlockState(pos).getBlock();
+        return block instanceof IFluidBlock || block instanceof BlockLiquid;
+    }
+
+    /**
+     * Checks if the block is a source block of a fluid
+     */
+    public static boolean isFluidSourceBlock(World world, BlockPos pos)
+    {
+        IBlockState state = world.getBlockState(pos);
+        Block block = state.getBlock();
+        return block instanceof IFluidBlock && ((IFluidBlock) block).canDrain(world, pos) ||
+                block instanceof BlockLiquid && state.getValue(BlockLiquid.LEVEL) == 0;
     }
 
     /**
