@@ -55,9 +55,9 @@ public class ConfigHandler
             {
                 try
                 {
-                    int r = Integer.parseInt(rgb[0]);
-                    int g = Integer.parseInt(rgb[1]);
-                    int b = Integer.parseInt(rgb[2]);
+                    int r = Integer.parseInt(rgb[0].trim());
+                    int g = Integer.parseInt(rgb[1].trim());
+                    int b = Integer.parseInt(rgb[2].trim());
                     Config.boxRenderColour = new Color(r, g, b);
                 }
                 catch(NumberFormatException e)
