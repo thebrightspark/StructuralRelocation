@@ -66,9 +66,30 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         return curBlock == null ? null : curBlock.add(toMoveMin);
     }
 
+    /*
+    Location from = new Location(world, toMoveMin.add(curBlock));
+        Location to = new Location(target.world, target.position.add(curBlock));
+     */
+
+    public Location getFromLoc()
+    {
+        BlockPos posFrom = toMoveMin != null ? toMoveMin.add(curBlock) : toMove != null ? toMove.getStartingPoint() : null;
+        return posFrom == null ? null : new Location(world, posFrom);
+    }
+
+    public Location getToLoc()
+    {
+        return curBlock == null ? target : target == null ? null : new Location(target.world, target.position.add(curBlock));
+    }
+
     public boolean isActive()
     {
         return curBlock != null;
+    }
+
+    public boolean hasEnoughEnergy()
+    {
+        return hasEnoughEnergy(getFromLoc(), getToLoc());
     }
 
     private boolean doPreActionChecks()
@@ -149,7 +170,10 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
     public void update()
     {
         if(world.isRemote || curBlock == null) return;
-        if(!hasEnoughEnergy())
+
+        Location from = new Location(world, toMoveMin.add(curBlock));
+        Location to = new Location(target.world, target.position.add(curBlock));
+        if(!hasEnoughEnergy(from, to))
         {
             if(Config.debugTeleportMessages && !checkedEnergy)
             {
@@ -162,13 +186,10 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         checkedEnergy = false;
 
         //Teleport the block
-        WorldServer worldTo = world.getMinecraftServer().worldServerForDimension(target.dimensionId);
-        BlockPos toMovePos = toMoveMin.add(curBlock);
-        BlockPos targetPos = target.position.add(curBlock);
         if(isCopying)
-            copyBlock(toMovePos, worldTo, targetPos);
+            copyBlock(from, to);
         else
-            teleportBlock(toMovePos, worldTo, targetPos);
+            teleportBlock(from, to);
 
         do
         {
@@ -188,10 +209,10 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
                 nextPos = null;
 
             curBlock = nextPos == null ? null : new BlockPos(nextPos);
-            toMovePos = curBlock == null ? null : toMoveMin.add(curBlock);
+            from.position = curBlock == null ? null : toMoveMin.add(curBlock);
         }
         //Skip air and unbreakable blocks
-        while(curBlock != null && !(isCopying ? canCopyBlock(world, toMovePos) : canTeleportBlock(world, toMovePos)));
+        while(curBlock != null && !(isCopying ? canCopyBlock(from) : canTeleportBlock(from)));
 
         if(curBlock == null && Config.debugTeleportMessages) LogHelper.info("Area " + (isCopying ? "copying" : "teleportation") + " complete.");
 

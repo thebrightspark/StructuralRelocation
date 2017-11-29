@@ -3,18 +3,20 @@ package brightspark.structuralrelocation.tileentity;
 import brightspark.structuralrelocation.Config;
 import brightspark.structuralrelocation.Location;
 import brightspark.structuralrelocation.util.LogHelper;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.world.WorldServer;
-import net.minecraftforge.fluids.IFluidBlock;
 
 public class TileSingleTeleporter extends AbstractTileTeleporter
 {
+    private Location toTeleport;
     private Location target;
+
+    @Override
+    public void onLoad()
+    {
+        super.onLoad();
+        toTeleport = new Location(world, pos.up());
+    }
 
     public void setTarget(Location location)
     {
@@ -29,8 +31,12 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
 
     private boolean canTeleport()
     {
-        WorldServer worldTo = world.getMinecraftServer().worldServerForDimension(target.dimensionId);
-        return target != null && hasEnoughEnergy() && isDestinationClear(worldTo, target.position);
+        return target != null && hasEnoughEnergy(toTeleport, target) && isDestinationClear(target);
+    }
+
+    public boolean hasEnoughEnergy()
+    {
+        return hasEnoughEnergy(toTeleport, target);
     }
 
     private boolean doPreActionChecks()
@@ -50,7 +56,7 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
         super.teleport(player);
         if(doPreActionChecks())
         {
-            teleportBlock(pos.up(), target);
+            teleportBlock(toTeleport, target);
             if(Config.debugTeleportMessages) LogHelper.info("Block Teleported");
         }
     }
@@ -61,7 +67,7 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
         super.copy(player);
         if(doPreActionChecks())
         {
-            copyBlock(pos.up(), target);
+            copyBlock(toTeleport, target);
             if(Config.debugTeleportMessages) LogHelper.info("Block Copied");
         }
     }

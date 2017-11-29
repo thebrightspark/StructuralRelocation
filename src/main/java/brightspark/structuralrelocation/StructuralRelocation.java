@@ -10,7 +10,6 @@ import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 
@@ -59,12 +58,4 @@ public class StructuralRelocation
 
         NetworkRegistry.INSTANCE.registerGuiHandler(instance, new GuiHandler());
     }
-
-    @Mod.EventHandler
-    public void postInit(FMLPostInitializationEvent event)
-    {
-        //Run stuff after mods have initialized here
-
-    }
-
 }

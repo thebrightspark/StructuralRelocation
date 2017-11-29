@@ -19,10 +19,26 @@ public class Config
      */
     public static int maxTeleportAreaSize = 64;
 
-    /**
-     * The amount of energy used to teleport each block
+    /*
+        ENERGY CALCULATION:
+        Energy Cost = energyPerBlockBase + (energyPerDistanceMultiplier * 20 * log(distance))
+        Multiply cost by energyAcrossDimensionsMultiplier if going across dimensions
      */
-    public static int energyPerBlockTeleport = 500;
+
+    /**
+     * The base amount of energy used to teleport each block
+     */
+    public static int energyPerBlockBase = 500;
+
+    /**
+     * The multiplier for energy per meter a block will be teleported
+     */
+    public static float energyPerDistanceMultiplier = 1F;
+
+    /**
+     * The multiplier for teleporting across dimensions
+     */
+    public static float energyAcrossDimensionsMultiplier = 2F;
 
     /**
      * The colour of the boxes which are rendered by the Selector and Debugger

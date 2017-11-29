@@ -162,12 +162,17 @@ public class GuiTeleporter extends GuiContainer
             boolean hasEnoughEnergy = singleTE.hasEnoughEnergy();
             List<String> tooltipStatus = new ArrayList<String>();
             tooltipStatus.add(TextFormatting.GOLD + "Status:");
-            if(hasEnoughEnergy)
-                tooltipStatus.add(TextFormatting.BLUE + "Inactive");
+            if(target == null)
+                tooltipStatus.add(TextFormatting.RED + "Target not set!");
             else
-                tooltipStatus.add(TextFormatting.RED + "Out of energy!");
+            {
+                if(hasEnoughEnergy)
+                    tooltipStatus.add(TextFormatting.BLUE + "Inactive");
+                else
+                    tooltipStatus.add(TextFormatting.RED + "Out of energy!");
+            }
             iconStatus.setTooltip(tooltipStatus);
-            iconStatus.setBackground(hasEnoughEnergy ? EnumIconBackground.OFF : EnumIconBackground.RED);
+            iconStatus.setBackground(target != null && hasEnoughEnergy ? EnumIconBackground.OFF : EnumIconBackground.RED);
         }
     }
 

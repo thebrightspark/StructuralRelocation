@@ -32,7 +32,9 @@ public class ConfigHandler
         Config.debugTeleportMessages = config.getBoolean("debugTeleportMessages", GENERAL, Config.debugTeleportMessages, "If true, then debug messages will be printed to the console about teleportation for every block");
         Config.canTeleportFluids = config.getBoolean("canTeleportFluids", GENERAL, Config.canTeleportFluids, "Whether the teleporters can move fluids");
         Config.maxTeleportAreaSize = config.getInt("maxTeleportAreaSize", GENERAL, Config.maxTeleportAreaSize, 2, Integer.MAX_VALUE, "The maximum size of a dimension of a selected area");
-        Config.energyPerBlockTeleport = config.getInt("energyPerBlockTeleport", GENERAL, Config.energyPerBlockTeleport, 0, Integer.MAX_VALUE, "The amount of energy used to teleport each block");
+        Config.energyPerBlockBase = config.getInt("energyPerBlockBase", GENERAL, Config.energyPerBlockBase, 0, Integer.MAX_VALUE, "The base amount of energy used to teleport each block");
+        Config.energyPerDistanceMultiplier = config.getFloat("energyPerDistanceMultiplier", GENERAL, Config.energyPerDistanceMultiplier, 0F, Float.MAX_VALUE, "The multiplier for energy per meter a block will be teleported");
+        Config.energyAcrossDimensionsMultiplier = config.getFloat("energyAcrossDimensionsMultiplier", GENERAL, Config.energyAcrossDimensionsMultiplier, 1F, Float.MAX_VALUE, "The multiplier for teleporting across dimensions");
 
         String colourString = config.getString("boxRenderColour", GENERAL, "0xFF0000", "The colour of the boxes which are rendered by the Selector and Debugger.\nThis should be written in the format '0x123456' for hexadecimal values, '123,123,123' for RGB or just an integer.");
         if(colourString.startsWith("0x"))

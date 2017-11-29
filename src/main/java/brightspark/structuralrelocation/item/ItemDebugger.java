@@ -66,7 +66,7 @@ public class ItemDebugger extends ItemBasic
         //Set teleporter position
         if(world.getTileEntity(pos) instanceof TileAreaTeleporter)
         {
-            setTeleporterLoc(stack, new Location(player.dimension, pos));
+            setTeleporterLoc(stack, new Location(world, pos));
             player.sendMessage(new TextComponentString("Linked to teleporter"));
             return EnumActionResult.SUCCESS;
         }

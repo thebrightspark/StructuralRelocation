@@ -4,6 +4,8 @@ import brightspark.structuralrelocation.StructuralRelocation;
 import brightspark.structuralrelocation.message.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraft.world.World;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.relauncher.Side;
@@ -49,5 +51,10 @@ public class CommonUtils
         return TextFormatting.WHITE + "X: " + TextFormatting.GRAY + pos.getX() +
                 TextFormatting.WHITE + " Y: " + TextFormatting.GRAY + pos.getY() +
                 TextFormatting.WHITE + " Z: " + TextFormatting.GRAY + pos.getZ();
+    }
+
+    public static World getWorldByDimId(int dimId)
+    {
+        return FMLCommonHandler.instance().getMinecraftServerInstance().worldServerForDimension(dimId);
     }
 }

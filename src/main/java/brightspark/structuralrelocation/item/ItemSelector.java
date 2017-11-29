@@ -159,14 +159,14 @@ public class ItemSelector extends ItemBasic
                 {
                     case SINGLE:
                         //Set target
-                        setTarget(stack, new Location(player.dimension, posToSave));
+                        setTarget(stack, new Location(world, posToSave));
                         player.sendMessage(new TextComponentString("Set Target"));
                         break;
                     case AREA:
                         if(areaLoc1 == null)
                         {
                             //Set the first location
-                            areaLoc1 = new Location(player.dimension, posToSave);
+                            areaLoc1 = new Location(world, posToSave);
                             player.sendMessage(new TextComponentString("Position 1 set!"));
                         }
                         else

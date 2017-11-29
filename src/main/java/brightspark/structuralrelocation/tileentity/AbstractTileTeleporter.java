@@ -34,7 +34,7 @@ public abstract class AbstractTileTeleporter extends TileEntity
 
     public void initEnergy()
     {
-        energy = new SREnergyStorage(1000000, 1000, 0);
+        energy = new SREnergyStorage(1000000, 5000, 0);
     }
 
     public boolean isUseableByPlayer(EntityPlayer player)
@@ -68,21 +68,25 @@ public abstract class AbstractTileTeleporter extends TileEntity
     /**
      * Checks that the block can be teleported by the player who started the teleport
      */
-    protected boolean canTeleportBlock(World world, BlockPos pos)
+    protected boolean canTeleportBlock(Location location)
     {
+        World world = location.world;
+        BlockPos pos = location.position;
         if(!world.isBlockModifiable(getLastPlayer(), pos))
         {
             if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block " + world.getBlockState(pos).getBlock().getRegistryName().toString() + " at " + pos.toString() + " -> No permission to modify block.");
             return false;
         }
-        return canCopyBlock(world, pos);
+        return canCopyBlock(location);
     }
 
     /**
      * Checks that the block can be copied by the player who started the copy
      */
-    protected boolean canCopyBlock(World world, BlockPos pos)
+    protected boolean canCopyBlock(Location location)
     {
+        World world = location.world;
+        BlockPos pos = location.position;
         IBlockState state = world.getBlockState(pos);
         String blockName = state.getBlock().getRegistryName().toString();
         if(world.isAirBlock(pos))
@@ -90,7 +94,7 @@ public abstract class AbstractTileTeleporter extends TileEntity
             if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block " + blockName + " at " + pos.toString() + " -> Is an air block.");
             return false;
         }
-        if(!getLastPlayer().capabilities.isCreativeMode || state.getBlock().getBlockHardness(state, world, pos) < 0)
+        if((getLastPlayer() != null && !getLastPlayer().capabilities.isCreativeMode) || state.getBlock().getBlockHardness(state, world, pos) < 0)
         {
             if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block " + blockName + " at " + pos.toString() + " -> Block is unbreakable.");
             return false;
@@ -101,6 +105,14 @@ public abstract class AbstractTileTeleporter extends TileEntity
             return false;
         }
         return true;
+    }
+
+    /**
+     * Checks if a block can be teleported to the location
+     */
+    protected boolean isDestinationClear(Location location)
+    {
+        return isDestinationClear(location.world, location.position);
     }
 
     /**
@@ -145,58 +157,42 @@ public abstract class AbstractTileTeleporter extends TileEntity
     /**
      * Teleports the block to the given location
      */
-    protected void teleportBlock(BlockPos from, Location to)
+    protected void teleportBlock(Location from, Location to)
     {
-        teleportBlock(from, world.getMinecraftServer().worldServerForDimension(to.dimensionId), to.position);
+        teleportBlock(from, to, true);
     }
 
     /**
      * Teleports the block to the given location
      */
-    protected void teleportBlock(BlockPos from, World worldTo, BlockPos to)
+    protected void teleportBlock(Location from, Location to, boolean moveTileEntities)
     {
-        teleportBlock(from, worldTo, to, true);
-    }
-
-    /**
-     * Teleports the block to the given location
-     */
-    protected void teleportBlock(BlockPos from, World worldTo, BlockPos to, boolean moveTileEntities)
-    {
-        if(doTeleporterAction(from, worldTo, to, moveTileEntities, true) && Config.debugTeleportMessages)
-            LogHelper.info("Successfully teleported block from " + from.toString() + " to " + to.toString() + " in dimension " + worldTo.provider.getDimension());
+        if(doTeleporterAction(from, to, moveTileEntities, true) && Config.debugTeleportMessages)
+            LogHelper.info("Successfully teleported block from " + from.toString() + " to " + to.toString() + " in dimension " + to.dimensionId);
     }
 
     /**
      * Copy the block to the given location
      */
-    protected void copyBlock(BlockPos from, Location to)
+    protected void copyBlock(Location from, Location to)
     {
-        copyBlock(from, world.getMinecraftServer().worldServerForDimension(to.dimensionId), to.position);
+        copyBlock(from, to, true);
     }
 
     /**
      * Copy the block to the given location
      */
-    protected void copyBlock(BlockPos from, World worldTo, BlockPos to)
+    protected void copyBlock(Location from, Location to, boolean copyTileEntities)
     {
-        copyBlock(from, worldTo, to, true);
+        if(doTeleporterAction(from, to, copyTileEntities, false) && Config.debugTeleportMessages)
+            LogHelper.info("Successfully copied block from " + from.toString() + " to " + to.toString() + " in dimension " + to.dimensionId);
     }
 
-    /**
-     * Copy the block to the given location
-     */
-    protected void copyBlock(BlockPos from, World worldTo, BlockPos to, boolean copyTileEntities)
+    private boolean doTeleporterAction(Location from, Location to, boolean handleTileEntities, boolean removeBlocks)
     {
-        if(doTeleporterAction(from, worldTo, to, copyTileEntities, false) && Config.debugTeleportMessages)
-            LogHelper.info("Successfully copied block from " + from.toString() + " to " + to.toString() + " in dimension " + worldTo.provider.getDimension());
-    }
-
-    private boolean doTeleporterAction(BlockPos from, World worldTo, BlockPos to, boolean handleTileEntities, boolean removeBlocks)
-    {
-        if(removeBlocks ? !canTeleportBlock(world, from) : !canCopyBlock(world, from)) return false;
-        IBlockState state = world.getBlockState(from);
-        TileEntity te = world.getTileEntity(from);
+        if(removeBlocks ? !canTeleportBlock(from) : !canCopyBlock(from)) return false;
+        IBlockState state = from.getBlockState();
+        TileEntity te = from.getTE();
         //If not handling tile entities, and this block has one, then don't do anything to it
         if(!handleTileEntities && te != null) return false;
         TileEntity newTe = null;
@@ -219,15 +215,15 @@ public abstract class AbstractTileTeleporter extends TileEntity
         }
 
         //Set the new block and tile entity
-        worldTo.setBlockState(to, state);
-        if(newTe != null) worldTo.setTileEntity(to, newTe);
+        to.setBlockState(state);
+        if(newTe != null) to.setTE(newTe);
         if(removeBlocks)
         {
             //Remove the old block and tile entity
-            world.removeTileEntity(from);
-            world.setBlockToAir(from);
+            from.removeTE();
+            from.setBlockToAir();
         }
-        useEnergy();
+        useEnergy(from, to);
         return true;
     }
 
@@ -249,15 +245,25 @@ public abstract class AbstractTileTeleporter extends TileEntity
         return (float) energy.getEnergyStored() / (float) energy.getMaxEnergyStored();
     }
 
-    public boolean hasEnoughEnergy()
+    public abstract boolean hasEnoughEnergy();
+
+    public boolean hasEnoughEnergy(Location from, Location to)
     {
-        return energy.getEnergyStored() >= Config.energyPerBlockTeleport;
+        return from != null && to != null && energy.getEnergyStored() >= calcEnergyCost(from, to);
     }
 
-    protected void useEnergy()
+    protected void useEnergy(Location from, Location to)
     {
-        energy.modifyEnergy(-Config.energyPerBlockTeleport);
+        energy.modifyEnergy(-calcEnergyCost(from, to));
         markDirty();
+    }
+
+    protected int calcEnergyCost(Location from, Location to)
+    {
+        int cost = Config.energyPerBlockBase + (int) Math.ceil(Config.energyPerDistanceMultiplier * 20F * Math.ceil(Math.log(from.distanceTo(to))));
+        if(from.dimensionId != to.dimensionId)
+            cost *= Config.energyAcrossDimensionsMultiplier;
+        return cost;
     }
 
     public void setEnergy(int amount)

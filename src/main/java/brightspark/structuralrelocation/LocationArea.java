@@ -1,6 +1,7 @@
 package brightspark.structuralrelocation;
 
 import brightspark.structuralrelocation.util.LogHelper;
+import com.google.common.base.Objects;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -127,5 +128,14 @@ public class LocationArea implements INBTSerializable<NBTTagCompound>
         dimensionId = tag.getInteger("dimension");
         pos1 = BlockPos.fromLong(tag.getLong("position1"));
         pos2 = BlockPos.fromLong(tag.getLong("position2"));
+    }
+
+    @Override
+    public String toString()
+    {
+        return Objects.toStringHelper(this)
+                .add("dim", dimensionId)
+                .add("pos1", pos1.toString())
+                .add("pos2", pos2.toString()).toString();
     }
 }
