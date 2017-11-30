@@ -106,9 +106,9 @@ public class LocationArea implements INBTSerializable<NBTTagCompound>
     {
         Vec3d posVec = new Vec3d((double) pos.getX() + 0.5d, (double) pos.getY() + 0.5d, (double) pos.getZ() + 0.5d);
         AxisAlignedBB areaBox = new AxisAlignedBB(getStartingPoint(), getEndPoint().add(1, 1, 1));
-        AxisAlignedBB areaBoxBigger = areaBox.expandXyz(1d);
-        boolean isOutsideArea = !areaBox.isVecInside(posVec);
-        boolean isOnEdgeOfArea = areaBoxBigger.isVecInside(posVec);
+        AxisAlignedBB areaBoxBigger = areaBox.grow(1d);
+        boolean isOutsideArea = !areaBox.contains(posVec);
+        boolean isOnEdgeOfArea = areaBoxBigger.contains(posVec);
         return isOutsideArea && isOnEdgeOfArea;
     }
 

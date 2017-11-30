@@ -55,6 +55,6 @@ public class CommonUtils
 
     public static World getWorldByDimId(int dimId)
     {
-        return FMLCommonHandler.instance().getMinecraftServerInstance().worldServerForDimension(dimId);
+        return FMLCommonHandler.instance().getMinecraftServerInstance().getWorld(dimId);
     }
 }

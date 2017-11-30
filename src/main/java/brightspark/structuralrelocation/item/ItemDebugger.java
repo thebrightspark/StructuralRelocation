@@ -53,7 +53,7 @@ public class ItemDebugger extends ItemBasic
      * @return Return PASS to allow vanilla handling, any other to skip normal code.
      */
     @Override
-    public EnumActionResult onItemUseFirst(ItemStack stack, EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ, EnumHand hand)
+    public EnumActionResult onItemUseFirst(EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ, EnumHand hand)
     {
         if(world.isRemote)
         {
@@ -66,7 +66,7 @@ public class ItemDebugger extends ItemBasic
         //Set teleporter position
         if(world.getTileEntity(pos) instanceof TileAreaTeleporter)
         {
-            setTeleporterLoc(stack, new Location(world, pos));
+            setTeleporterLoc(player.getHeldItem(hand), new Location(world, pos));
             player.sendMessage(new TextComponentString("Linked to teleporter"));
             return EnumActionResult.SUCCESS;
         }
@@ -74,17 +74,18 @@ public class ItemDebugger extends ItemBasic
     }
 
     @Override
-    public ActionResult<ItemStack> onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn, EnumHand hand)
+    public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand hand)
     {
+        ItemStack stack = playerIn.getHeldItem(hand);
         if(playerIn.isSneaking())
         {
             //Clear teleporter position
-            clearTeleporterLoc(itemStackIn);
+            clearTeleporterLoc(stack);
             if(worldIn.isRemote)
                 playerIn.sendMessage(new TextComponentString("Cleared linked teleporter"));
-            return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, itemStackIn);
+            return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, stack);
         }
-        return new ActionResult<ItemStack>(EnumActionResult.PASS, itemStackIn);
+        return new ActionResult<ItemStack>(EnumActionResult.PASS, stack);
     }
 
     @Override

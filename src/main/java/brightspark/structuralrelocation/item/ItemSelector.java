@@ -102,7 +102,7 @@ public class ItemSelector extends ItemBasic
      * @return Return PASS to allow vanilla handling, any other to skip normal code.
      */
     @Override
-    public EnumActionResult onItemUseFirst(ItemStack stack, EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ, EnumHand hand)
+    public EnumActionResult onItemUseFirst(EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ, EnumHand hand)
     {
         if(world.isRemote)
         {
@@ -112,6 +112,7 @@ public class ItemSelector extends ItemBasic
             return EnumActionResult.SUCCESS;
         }
 
+        ItemStack stack = player.getHeldItem(hand);
         TileEntity te = world.getTileEntity(pos);
         boolean hasTarget = getTarget(stack) != null;
         boolean hasArea = getArea(stack) != null;
@@ -198,17 +199,18 @@ public class ItemSelector extends ItemBasic
     }
 
     @Override
-    public ActionResult<ItemStack> onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn, EnumHand hand)
+    public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand hand)
     {
+        ItemStack stack = playerIn.getHeldItem(hand);
         if(playerIn.isSneaking())
         {
             //Switch mode
-            nextMode(itemStackIn);
+            nextMode(stack);
             if(worldIn.isRemote)
-                playerIn.sendMessage(new TextComponentString("Change mode to " + getMode(itemStackIn).toString().toLowerCase() + " mode."));
-            return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, itemStackIn);
+                playerIn.sendMessage(new TextComponentString("Change mode to " + getMode(stack).toString().toLowerCase() + " mode."));
+            return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, stack);
         }
-        return new ActionResult<ItemStack>(EnumActionResult.PASS, itemStackIn);
+        return new ActionResult<ItemStack>(EnumActionResult.PASS, stack);
     }
 
     @Override

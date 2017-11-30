@@ -106,7 +106,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
 
         //Check that the target area is completely clear
         //TODO: Check more precisely if the blocks can fit at the destination rather than just making sure the area is completely clear?
-        WorldServer targetDim = world.getMinecraftServer().worldServerForDimension(target.dimensionId);
+        WorldServer targetDim = world.getMinecraftServer().getWorld(target.dimensionId);
         Iterator<BlockPos> positions = BlockPos.getAllInBox(destinationStart, destinationEnd).iterator();
         while(positions.hasNext())
         {
