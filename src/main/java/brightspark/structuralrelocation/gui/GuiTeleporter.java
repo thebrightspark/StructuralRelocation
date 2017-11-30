@@ -310,15 +310,15 @@ public class GuiTeleporter extends GuiContainer
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             this.hovered = mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height;
             //Select appropriate button icon for button state
-            int y = iconY;
+            int iy = iconY;
             int textColour = 0x0094FF;
             if(!enabled)
             {
-                y += height; //Changes to "off" icon
+                iy += height; //Changes to "off" icon
                 textColour = 0x002B49; //Changes to darker text
             }
             //Draw icon
-            drawTexturedModalRect(x, y, iconX, y, width, height);
+            drawTexturedModalRect(x, y, iconX, iy, width, height);
             //Draw text
             if(!displayString.equals(""))
                 drawCenteredString(fontrenderer, displayString, x + (width / 2), y + (height - 7) / 2, textColour);

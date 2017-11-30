@@ -168,7 +168,7 @@ public abstract class AbstractTileTeleporter extends TileEntity
     protected void teleportBlock(Location from, Location to, boolean moveTileEntities)
     {
         if(doTeleporterAction(from, to, moveTileEntities, true) && Config.debugTeleportMessages)
-            LogHelper.info("Successfully teleported block from " + from.toString() + " to " + to.toString() + " in dimension " + to.dimensionId);
+            LogHelper.info("Successfully teleported block from " + from.toString() + " to " + to.toString());
     }
 
     /**
