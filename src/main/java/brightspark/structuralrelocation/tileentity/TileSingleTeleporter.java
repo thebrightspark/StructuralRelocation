@@ -1,21 +1,27 @@
 package brightspark.structuralrelocation.tileentity;
 
+import brightspark.structuralrelocation.Config;
 import brightspark.structuralrelocation.Location;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
+import brightspark.structuralrelocation.util.LogHelper;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraftforge.fluids.IFluidBlock;
 
 public class TileSingleTeleporter extends AbstractTileTeleporter
 {
+    private Location toTeleport;
     private Location target;
+
+    @Override
+    public void onLoad()
+    {
+        super.onLoad();
+        toTeleport = new Location(world, pos.up());
+    }
 
     public void setTarget(Location location)
     {
         target = location;
+        markDirty();
     }
 
     public Location getTarget()
@@ -25,19 +31,45 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
 
     private boolean canTeleport()
     {
-        BlockPos blockPos = pos.up();
-        IBlockState state = world.getBlockState(blockPos);
-        return target != null && state.getMaterial() != Material.AIR && !(state.getBlock() instanceof IFluidBlock) && state.getBlockHardness(world, blockPos) >= 0 && hasEnoughEnergy();
+        return target != null && hasEnoughEnergy(toTeleport, target) && isDestinationClear(target);
+    }
+
+    public boolean hasEnoughEnergy()
+    {
+        return hasEnoughEnergy(toTeleport, target);
+    }
+
+    private boolean doPreActionChecks()
+    {
+        if(world.isRemote) return false;
+        if(!canTeleport())
+        {
+            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport. Either no target set or not enough power.");
+            return false;
+        }
+        return true;
     }
 
     @Override
     public void teleport(EntityPlayer player)
     {
-        //Called from the block when right clicked
-        if(world.isRemote || !canTeleport()) return;
-        teleportBlock(pos.up(), target);
-        player.sendMessage(new TextComponentString("Block Teleported"));
-        markDirty();
+        super.teleport(player);
+        if(doPreActionChecks())
+        {
+            teleportBlock(toTeleport, target);
+            if(Config.debugTeleportMessages) LogHelper.info("Block Teleported");
+        }
+    }
+
+    @Override
+    public void copy(EntityPlayer player)
+    {
+        super.copy(player);
+        if(doPreActionChecks())
+        {
+            copyBlock(toTeleport, target);
+            if(Config.debugTeleportMessages) LogHelper.info("Block Copied");
+        }
     }
 
     @Override

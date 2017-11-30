@@ -55,17 +55,16 @@ public class GuiTeleporter extends GuiContainer
     {
         super.initGui();
 
-        //TODO: Re-implement Copy button (Remove setting 'enabled' state to false for the Copy buttons)
         if(isAreaTeleporter)
         {
             buttonList.add(new Button(25, 57, "Teleport"));
-            buttonList.add(new Button(74, 57, "Copy", false));
+            buttonList.add(new Button(74, 57, "Copy"));
             buttonList.add(new Button(123, 57, "Stop", false));
         }
         else
         {
             buttonList.add(new Button(41, 57, "Teleport"));
-            buttonList.add(new Button(107, 57, "Copy", false));
+            buttonList.add(new Button(107, 57, "Copy"));
         }
 
         /*
@@ -163,12 +162,17 @@ public class GuiTeleporter extends GuiContainer
             boolean hasEnoughEnergy = singleTE.hasEnoughEnergy();
             List<String> tooltipStatus = new ArrayList<String>();
             tooltipStatus.add(TextFormatting.GOLD + "Status:");
-            if(hasEnoughEnergy)
-                tooltipStatus.add(TextFormatting.BLUE + "Inactive");
+            if(target == null)
+                tooltipStatus.add(TextFormatting.RED + "Target not set!");
             else
-                tooltipStatus.add(TextFormatting.RED + "Out of energy!");
+            {
+                if(hasEnoughEnergy)
+                    tooltipStatus.add(TextFormatting.BLUE + "Inactive");
+                else
+                    tooltipStatus.add(TextFormatting.RED + "Out of energy!");
+            }
             iconStatus.setTooltip(tooltipStatus);
-            iconStatus.setBackground(hasEnoughEnergy ? EnumIconBackground.OFF : EnumIconBackground.RED);
+            iconStatus.setBackground(target != null && hasEnoughEnergy ? EnumIconBackground.OFF : EnumIconBackground.RED);
         }
     }
 
@@ -183,7 +187,9 @@ public class GuiTeleporter extends GuiContainer
             {
                 case 0: //Teleport
                     button.enabled = !isActive && hasEnergy && hasTargets;
-                case 1: //Copy (Do nothing for now while unimplemented) TODO: Re-implement Copy button
+                    break;
+                case 1: //Copy
+                    button.enabled = mc.player.capabilities.isCreativeMode && !isActive && hasEnergy && hasTargets;
                     break;
                 case 2: //Stop
                     button.enabled = isActive;
@@ -256,21 +262,6 @@ public class GuiTeleporter extends GuiContainer
     @Override
     protected void actionPerformed(GuiButton button) throws IOException
     {
-        switch(button.id)
-        {
-            case 0: //Teleport
-
-                break;
-            case 1: //Copy
-
-                break;
-            case 2: //Stop
-
-                break;
-            default:
-                LogHelper.warn("Unhandled client button click '" + button.id + "' for teleporter GUI!");
-        }
-
         CommonUtils.NETWORK.sendToServer(new MessageGuiTeleport(button.id, mc.player, teleporter.getPos()));
     }
 
@@ -317,20 +308,20 @@ public class GuiTeleporter extends GuiContainer
             FontRenderer fontrenderer = mc.fontRenderer;
             mc.getTextureManager().bindTexture(guiImage);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-            this.hovered = mouseX >= xPosition && mouseY >= yPosition && mouseX < xPosition + width && mouseY < yPosition + height;
+            this.hovered = mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height;
             //Select appropriate button icon for button state
-            int y = iconY;
+            int iy = iconY;
             int textColour = 0x0094FF;
             if(!enabled)
             {
-                y += height; //Changes to "off" icon
+                iy += height; //Changes to "off" icon
                 textColour = 0x002B49; //Changes to darker text
             }
             //Draw icon
-            drawTexturedModalRect(xPosition, yPosition, iconX, y, width, height);
+            drawTexturedModalRect(x, y, iconX, iy, width, height);
             //Draw text
             if(!displayString.equals(""))
-                drawCenteredString(fontrenderer, displayString, xPosition + (width / 2), yPosition + (height - 7) / 2, textColour);
+                drawCenteredString(fontrenderer, displayString, x + (width / 2), y + (height - 7) / 2, textColour);
         }
     }
 

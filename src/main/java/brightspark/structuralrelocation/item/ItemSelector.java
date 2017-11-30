@@ -4,6 +4,7 @@ import brightspark.structuralrelocation.Location;
 import brightspark.structuralrelocation.LocationArea;
 import brightspark.structuralrelocation.block.BlockAreaTeleporter;
 import brightspark.structuralrelocation.block.BlockSingleTeleporter;
+import brightspark.structuralrelocation.tileentity.AbstractTileTeleporter;
 import brightspark.structuralrelocation.tileentity.TileAreaTeleporter;
 import brightspark.structuralrelocation.tileentity.TileSingleTeleporter;
 import brightspark.structuralrelocation.util.CommonUtils;
@@ -116,7 +117,7 @@ public class ItemSelector extends ItemBasic
         boolean hasTarget = getTarget(stack) != null;
         boolean hasArea = getArea(stack) != null;
         boolean flag = false;
-        if((hasTarget || hasArea) && te != null)
+        if((hasTarget || hasArea) && te != null && te instanceof AbstractTileTeleporter)
         {
             //Set target/area in block
             switch(getMode(stack))
@@ -124,9 +125,16 @@ public class ItemSelector extends ItemBasic
                 case AREA:
                     //Set area
                     if(!hasArea) break;
+                    //Make sure the area is in the same dimension as the teleporter
+                    LocationArea area = getArea(stack);
+                    if(area.dimensionId != world.provider.getDimension() || !area.isAdjacent(pos))
+                    {
+                        player.sendMessage(new TextComponentString("Area to teleport must be adjacent to the teleporter!"));
+                        break;
+                    }
                     flag = true;
                     if(te instanceof TileAreaTeleporter)
-                        ((TileAreaTeleporter) te).setAreaToMove(getArea(stack));
+                        ((TileAreaTeleporter) te).setAreaToMove(area);
                     player.sendMessage(new TextComponentString("Teleporter Area Set!"));
                     break;
                 case SINGLE:
@@ -152,14 +160,14 @@ public class ItemSelector extends ItemBasic
                 {
                     case SINGLE:
                         //Set target
-                        setTarget(stack, new Location(player.dimension, posToSave));
+                        setTarget(stack, new Location(world, posToSave));
                         player.sendMessage(new TextComponentString("Set Target"));
                         break;
                     case AREA:
                         if(areaLoc1 == null)
                         {
                             //Set the first location
-                            areaLoc1 = new Location(player.dimension, posToSave);
+                            areaLoc1 = new Location(world, posToSave);
                             player.sendMessage(new TextComponentString("Position 1 set!"));
                         }
                         else
@@ -191,9 +199,9 @@ public class ItemSelector extends ItemBasic
     }
 
     @Override
-    public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn)
+    public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand hand)
     {
-        ItemStack stack = playerIn.getHeldItem(handIn);
+        ItemStack stack = playerIn.getHeldItem(hand);
         if(playerIn.isSneaking())
         {
             //Switch mode

@@ -1,5 +1,5 @@
 {
 	"variants": {
-		"normal": { "model": "structuralrelocation:teleporter" }
+		"normal": { "model": "structuralrelocation:single_teleporter" }
 	}
 }

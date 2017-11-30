@@ -10,7 +10,6 @@ import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 
@@ -19,7 +18,7 @@ public class StructuralRelocation
 {
     public static final String MOD_ID = "structuralrelocation";
     public static final String MOD_NAME = "Structural Relocation";
-    public static final String VERSION = "1.10.2-0.0.6";
+    public static final String VERSION = "1.10.2-0.0.9.2";
     public static final String GUI_TEXTURE_DIR = "textures/gui/";
 
     @Mod.Instance(MOD_ID)
@@ -59,12 +58,4 @@ public class StructuralRelocation
 
         NetworkRegistry.INSTANCE.registerGuiHandler(instance, new GuiHandler());
     }
-
-    @Mod.EventHandler
-    public void postInit(FMLPostInitializationEvent event)
-    {
-        //Run stuff after mods have initialized here
-
-    }
-
 }

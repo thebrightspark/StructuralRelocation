@@ -55,10 +55,10 @@ public abstract class AbstractBlockContainer extends BlockBasic implements ITile
     }
 
     @Override
-    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
+    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ)
     {
         if(!hasGui)
-            return super.onBlockActivated(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
+            return super.onBlockActivated(worldIn, pos, state, playerIn, hand, side, hitX, hitY, hitZ);
         if(!playerIn.isSneaking())
             playerIn.openGui(StructuralRelocation.instance, 0, worldIn, pos.getX(), pos.getY(), pos.getZ());
         return true;

@@ -1,9 +1,12 @@
 package brightspark.structuralrelocation;
 
 import brightspark.structuralrelocation.util.LogHelper;
+import com.google.common.base.Objects;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.common.util.INBTSerializable;
 
 public class LocationArea implements INBTSerializable<NBTTagCompound>
@@ -64,11 +67,11 @@ public class LocationArea implements INBTSerializable<NBTTagCompound>
         switch(axis)
         {
             case X:
-                return maxPos.getX() - minPos.getX();
+                return maxPos.getX() - minPos.getX() + 1;
             case Y:
-                return maxPos.getY() - minPos.getY();
+                return maxPos.getY() - minPos.getY() + 1;
             case Z:
-                return maxPos.getZ() - minPos.getZ();
+                return maxPos.getZ() - minPos.getZ() + 1;
             default:
                 LogHelper.error("Unhandled axis!?");
                 return -1;
@@ -96,6 +99,19 @@ public class LocationArea implements INBTSerializable<NBTTagCompound>
         return area != null && area.dimensionId == dimensionId && area.pos1.equals(pos1) && area.pos2.equals(pos2);
     }
 
+    /**
+     * Checks if the block position is adjacent to the area
+     */
+    public boolean isAdjacent(BlockPos pos)
+    {
+        Vec3d posVec = new Vec3d((double) pos.getX() + 0.5d, (double) pos.getY() + 0.5d, (double) pos.getZ() + 0.5d);
+        AxisAlignedBB areaBox = new AxisAlignedBB(getStartingPoint(), getEndPoint().add(1, 1, 1));
+        AxisAlignedBB areaBoxBigger = areaBox.grow(1d);
+        boolean isOutsideArea = !areaBox.contains(posVec);
+        boolean isOnEdgeOfArea = areaBoxBigger.contains(posVec);
+        return isOutsideArea && isOnEdgeOfArea;
+    }
+
     @Override
     public NBTTagCompound serializeNBT()
     {
@@ -112,5 +128,14 @@ public class LocationArea implements INBTSerializable<NBTTagCompound>
         dimensionId = tag.getInteger("dimension");
         pos1 = BlockPos.fromLong(tag.getLong("position1"));
         pos2 = BlockPos.fromLong(tag.getLong("position2"));
+    }
+
+    @Override
+    public String toString()
+    {
+        return Objects.toStringHelper(this)
+                .add("dim", dimensionId)
+                .add("pos1", pos1.toString())
+                .add("pos2", pos2.toString()).toString();
     }
 }

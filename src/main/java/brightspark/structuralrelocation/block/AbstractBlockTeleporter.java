@@ -39,22 +39,12 @@ public abstract class AbstractBlockTeleporter extends AbstractBlockContainer
     }
 
     @Override
-    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
+    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ)
     {
-        //LogHelper.info("Item Activated With: " + (heldItem == null ? "Null" : heldItem.toString()));
         ItemStack heldItem = playerIn.getHeldItem(hand);
-        if(!heldItem.isEmpty() && heldItem.getItem() instanceof ItemSelector)
+        //LogHelper.info("Item Activated With: " + (heldItem == null ? "Null" : heldItem.toString()));
+        if(heldItem != null && heldItem.getItem() instanceof ItemSelector)
             return false;
-        return super.onBlockActivated(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
-
-        /*
-        TileEntity te = world.getTileEntity(pos);
-        if(te instanceof AbstractTileTeleporter && !player.isSneaking())
-        {
-            //Try to start teleporting
-            ((AbstractTileTeleporter) te).teleport(player);
-        }
-        return true;
-        */
+        return super.onBlockActivated(worldIn, pos, state, playerIn, hand, side, hitX, hitY, hitZ);
     }
 }
