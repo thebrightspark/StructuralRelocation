@@ -1,0 +1,12 @@
+{
+    "parent": "block/cube",
+    "textures": {
+        "particle": "structuralrelocation:blocks/teleporter_bottom",
+        "up": "structuralrelocation:blocks/area_teleporter_top",
+        "down": "structuralrelocation:blocks/teleporter_bottom",
+        "north": "structuralrelocation:blocks/area_teleporter_side",
+        "south": "structuralrelocation:blocks/area_teleporter_side",
+        "east": "structuralrelocation:blocks/area_teleporter_side",
+        "west": "structuralrelocation:blocks/area_teleporter_side"
+    }
+}
