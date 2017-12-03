@@ -94,7 +94,7 @@ public abstract class AbstractTileTeleporter extends TileEntity
             if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block " + blockName + " at " + pos.toString() + " -> Is an air block.");
             return false;
         }
-        if((getLastPlayer() != null && !getLastPlayer().capabilities.isCreativeMode) || state.getBlock().getBlockHardness(state, world, pos) < 0)
+        if((getLastPlayer() != null && !getLastPlayer().capabilities.isCreativeMode) && state.getBlock().getBlockHardness(state, world, pos) < 0)
         {
             if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block " + blockName + " at " + pos.toString() + " -> Block is unbreakable.");
             return false;

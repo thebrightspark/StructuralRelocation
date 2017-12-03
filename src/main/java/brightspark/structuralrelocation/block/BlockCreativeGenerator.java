@@ -12,6 +12,7 @@ public class BlockCreativeGenerator extends AbstractBlockContainer
     public BlockCreativeGenerator()
     {
         super("creative_generator", Material.IRON);
+        setBlockUnbreakable();
     }
 
     @Nullable
