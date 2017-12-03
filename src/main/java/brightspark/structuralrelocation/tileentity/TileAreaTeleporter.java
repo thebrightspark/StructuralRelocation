@@ -66,11 +66,6 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         return curBlock == null ? null : curBlock.add(toMoveMin);
     }
 
-    /*
-    Location from = new Location(world, toMoveMin.add(curBlock));
-        Location to = new Location(target.world, target.position.add(curBlock));
-     */
-
     public Location getFromLoc()
     {
         BlockPos posFrom = toMoveMin != null ? toMoveMin.add(curBlock) : toMove != null ? toMove.getStartingPoint() : null;
@@ -79,7 +74,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
 
     public Location getToLoc()
     {
-        return curBlock == null ? target : target == null ? null : new Location(target.world, target.position.add(curBlock));
+        return curBlock == null ? target : target == null ? null : new Location(target.dimensionId, target.position.add(curBlock));
     }
 
     public boolean isActive()
@@ -105,7 +100,6 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         BlockPos destinationEnd = destinationStart.add(toMove.getRelativeEndPoint());
 
         //Check that the target area is completely clear
-        //TODO: Check more precisely if the blocks can fit at the destination rather than just making sure the area is completely clear?
         WorldServer targetDim = world.getMinecraftServer().getWorld(target.dimensionId);
         Iterator<BlockPos> positions = BlockPos.getAllInBox(destinationStart, destinationEnd).iterator();
         while(positions.hasNext())

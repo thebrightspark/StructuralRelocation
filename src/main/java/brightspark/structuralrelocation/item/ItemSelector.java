@@ -2,6 +2,7 @@ package brightspark.structuralrelocation.item;
 
 import brightspark.structuralrelocation.Location;
 import brightspark.structuralrelocation.LocationArea;
+import brightspark.structuralrelocation.StructuralRelocation;
 import brightspark.structuralrelocation.block.BlockAreaTeleporter;
 import brightspark.structuralrelocation.block.BlockSingleTeleporter;
 import brightspark.structuralrelocation.tileentity.AbstractTileTeleporter;
@@ -10,10 +11,12 @@ import brightspark.structuralrelocation.tileentity.TileSingleTeleporter;
 import brightspark.structuralrelocation.util.CommonUtils;
 import brightspark.structuralrelocation.util.LogHelper;
 import net.minecraft.block.Block;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagInt;
+import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
@@ -23,6 +26,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 
 import java.util.List;
 
@@ -128,6 +132,13 @@ public class ItemSelector extends ItemBasic
     public EnumActionResult onItemUseFirst(EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ, EnumHand hand)
     {
         LogHelper.info("onItemUseFirst -> " + (world.isRemote ? "Client" : "Server"));
+
+        if(StructuralRelocation.IS_DEV && world.isRemote && player instanceof EntityPlayerSP)
+        {
+            //Send a packet to process this on the server, because MC won't do it if I return anything other than PASS in a dev environment
+            LogHelper.info("Sending packet to server");
+            ((EntityPlayerSP) player).connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(pos, side, hand, hitX, hitY, hitZ));
+        }
 
         ItemStack stack = player.getHeldItem(hand);
         TileEntity te = world.getTileEntity(pos);
