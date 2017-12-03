@@ -8,13 +8,12 @@ import brightspark.structuralrelocation.tileentity.AbstractTileTeleporter;
 import brightspark.structuralrelocation.tileentity.TileAreaTeleporter;
 import brightspark.structuralrelocation.tileentity.TileSingleTeleporter;
 import brightspark.structuralrelocation.util.CommonUtils;
+import brightspark.structuralrelocation.util.LogHelper;
 import net.minecraft.block.Block;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagInt;
-import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
@@ -50,8 +49,6 @@ public class ItemSelector extends ItemBasic
         }
     }
 
-    private Location areaLoc1 = null;
-
     public ItemSelector()
     {
         super("selector");
@@ -60,7 +57,15 @@ public class ItemSelector extends ItemBasic
 
     private static void setTarget(ItemStack stack, Location location)
     {
-        stack.setTagInfo("location", location.serializeNBT());
+        stack.setTagInfo("target", location.serializeNBT());
+    }
+
+    private static void setAreaLoc1(ItemStack stack, Location location)
+    {
+        if(location == null)
+            stack.removeSubCompound("location1");
+        else
+            stack.setTagInfo("location1", location.serializeNBT());
     }
 
     private static void setArea(ItemStack stack, LocationArea area)
@@ -68,12 +73,22 @@ public class ItemSelector extends ItemBasic
         stack.setTagInfo("area", area.serializeNBT());
     }
 
-    public static Location getTarget(ItemStack stack)
+    private static Location getLocation(ItemStack stack, String nbtName)
     {
         NBTTagCompound tag = stack.getTagCompound();
         if(tag == null) return null;
-        NBTTagCompound locTag = tag.getCompoundTag("location");
+        NBTTagCompound locTag = tag.getCompoundTag(nbtName);
         return locTag.getSize() == 0 ? null : new Location(locTag);
+    }
+
+    public static Location getTarget(ItemStack stack)
+    {
+        return getLocation(stack, "target");
+    }
+
+    public static Location getAreaLoc1(ItemStack stack)
+    {
+        return getLocation(stack, "location1");
     }
 
     public static LocationArea getArea(ItemStack stack)
@@ -97,6 +112,14 @@ public class ItemSelector extends ItemBasic
         return EnumSelection.getMode(tag.getInteger("mode"));
     }
 
+    private void sendMessage(EntityPlayer player, String message)
+    {
+        if(player.world.isRemote)
+            player.sendMessage(new TextComponentString(message));
+        else
+            LogHelper.info("Client message -> " + message);
+    }
+
     /**
      * This is called when the item is used, before the block is activated.
      * @return Return PASS to allow vanilla handling, any other to skip normal code.
@@ -104,13 +127,7 @@ public class ItemSelector extends ItemBasic
     @Override
     public EnumActionResult onItemUseFirst(EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ, EnumHand hand)
     {
-        if(world.isRemote)
-        {
-            if(player instanceof EntityPlayerSP)
-                //Send a packet to process this on the server, because MC won't do it if I return anything other than PASS
-                ((EntityPlayerSP) player).connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(pos, side, hand, hitX, hitY, hitZ));
-            return EnumActionResult.SUCCESS;
-        }
+        LogHelper.info("onItemUseFirst -> " + (world.isRemote ? "Client" : "Server"));
 
         ItemStack stack = player.getHeldItem(hand);
         TileEntity te = world.getTileEntity(pos);
@@ -129,13 +146,13 @@ public class ItemSelector extends ItemBasic
                     LocationArea area = getArea(stack);
                     if(area.dimensionId != world.provider.getDimension() || !area.isAdjacent(pos))
                     {
-                        player.sendMessage(new TextComponentString("Area to teleport must be adjacent to the teleporter!"));
+                        sendMessage(player, "Area to teleport must be adjacent to the teleporter!");
                         break;
                     }
                     flag = true;
                     if(te instanceof TileAreaTeleporter)
                         ((TileAreaTeleporter) te).setAreaToMove(area);
-                    player.sendMessage(new TextComponentString("Teleporter Area Set!"));
+                    sendMessage(player, "Teleporter Area Set!");
                     break;
                 case SINGLE:
                     //Set target
@@ -145,7 +162,7 @@ public class ItemSelector extends ItemBasic
                         ((TileSingleTeleporter) te).setTarget(getTarget(stack));
                     if(te instanceof TileAreaTeleporter)
                         ((TileAreaTeleporter) te).setTarget(getTarget(stack));
-                    player.sendMessage(new TextComponentString("Teleporter Target Set!"));
+                    sendMessage(player, "Teleporter Target Set!");
             }
         }
 
@@ -161,36 +178,37 @@ public class ItemSelector extends ItemBasic
                     case SINGLE:
                         //Set target
                         setTarget(stack, new Location(world, posToSave));
-                        player.sendMessage(new TextComponentString("Set Target"));
+                        sendMessage(player, "Set Target");
                         break;
                     case AREA:
+                        Location areaLoc1 = getAreaLoc1(stack);
                         if(areaLoc1 == null)
                         {
                             //Set the first location
-                            areaLoc1 = new Location(world, posToSave);
-                            player.sendMessage(new TextComponentString("Position 1 set!"));
+                            setAreaLoc1(stack, new Location(world, posToSave));
+                            sendMessage(player, "Position 1 set!");
                         }
                         else
                         {
                             if(areaLoc1.dimensionId != player.dimension)
                             {
                                 //Trying to set 2nd position in a different dimension
-                                player.sendMessage(new TextComponentString("Both positions must be in the same dimension!"));
+                                sendMessage(player, "Both positions must be in the same dimension!");
                             }
                             else
                             {
                                 //Check that the area isn't too big according to the config
                                 LocationArea area = new LocationArea(areaLoc1.dimensionId, areaLoc1.position, posToSave);
                                 if(area.isTooBig())
-                                    player.sendMessage(new TextComponentString("Area is too big!\nArea size: " + area.getSizeString()));
+                                    sendMessage(player, "Area is too big!\nArea size: " + area.getSizeString());
                                 else
                                 {
                                     //Set the second position and complete the area
                                     setArea(stack, area);
-                                    player.sendMessage(new TextComponentString("Position 2 set!"));
+                                    sendMessage(player, "Position 2 set!");
                                 }
                             }
-                            areaLoc1 = null;
+                            setAreaLoc1(stack, null);
                         }
                 }
             }
@@ -199,15 +217,14 @@ public class ItemSelector extends ItemBasic
     }
 
     @Override
-    public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand hand)
+    public ActionResult<ItemStack> onItemRightClick(World world, EntityPlayer player, EnumHand hand)
     {
-        ItemStack stack = playerIn.getHeldItem(hand);
-        if(playerIn.isSneaking())
+        ItemStack stack = player.getHeldItem(hand);
+        if(player.isSneaking())
         {
             //Switch mode
             nextMode(stack);
-            if(worldIn.isRemote)
-                playerIn.sendMessage(new TextComponentString("Change mode to " + getMode(stack).toString().toLowerCase() + " mode."));
+            sendMessage(player, "Changed mode to " + getMode(stack).toString().toLowerCase() + " mode.");
             return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, stack);
         }
         return new ActionResult<ItemStack>(EnumActionResult.PASS, stack);
@@ -233,6 +250,7 @@ public class ItemSelector extends ItemBasic
                 }
                 break;
             case AREA:
+                Location areaLoc1 = getAreaLoc1(stack);
                 if(areaLoc1 == null)
                 {
                     LocationArea area = getArea(stack);

@@ -90,10 +90,21 @@ public class ClientEventHandler
             }
             else
             {
-                LocationArea area = ItemSelector.getArea(heldItem);
-                if(area == null || area.dimensionId != mc.player.dimension) return;
-                //Render selected area
-                renderBox(area.getStartingPoint(), area.getEndPoint().add(1, 1, 1), event.getPartialTicks());
+                Location areaLoc1 = ItemSelector.getAreaLoc1(heldItem);
+                if(areaLoc1 == null)
+                {
+                    LocationArea area = ItemSelector.getArea(heldItem);
+                    if(area == null || area.dimensionId != mc.player.dimension) return;
+                    //Render selected area
+                    renderBox(area.getStartingPoint(), area.getEndPoint().add(1, 1, 1), event.getPartialTicks());
+
+                }
+                else
+                {
+                    if(areaLoc1.dimensionId != mc.player.dimension) return;
+                    //Render first area location
+                    renderBox(areaLoc1.position, event.getPartialTicks());
+                }
             }
         }
 

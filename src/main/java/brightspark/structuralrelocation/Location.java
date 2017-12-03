@@ -16,6 +16,13 @@ public class Location implements INBTSerializable<NBTTagCompound>
     public World world;
     public BlockPos position;
 
+    public Location(int dimensionId, BlockPos position)
+    {
+        this.dimensionId = dimensionId;
+        this.world = CommonUtils.getWorldByDimId(dimensionId);
+        this.position = position;
+    }
+
     public Location(World world, BlockPos position)
     {
         this.dimensionId = world.provider.getDimension();

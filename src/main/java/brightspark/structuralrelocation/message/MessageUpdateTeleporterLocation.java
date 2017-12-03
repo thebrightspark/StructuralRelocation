@@ -3,7 +3,6 @@ package brightspark.structuralrelocation.message;
 import brightspark.structuralrelocation.Location;
 import brightspark.structuralrelocation.LocationArea;
 import brightspark.structuralrelocation.gui.ContainerTeleporter;
-import brightspark.structuralrelocation.util.CommonUtils;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.inventory.Container;
@@ -44,7 +43,7 @@ public class MessageUpdateTeleporterLocation implements IMessage
         {
             int dimID = buf.readInt();
             BlockPos pos = BlockPos.fromLong(buf.readLong());
-            location = new Location(CommonUtils.getWorldByDimId(dimID), pos);
+            location = new Location(dimID, pos);
         }
     }
 

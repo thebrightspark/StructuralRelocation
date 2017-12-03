@@ -4,11 +4,9 @@ import brightspark.structuralrelocation.Location;
 import brightspark.structuralrelocation.init.SRBlocks;
 import brightspark.structuralrelocation.tileentity.TileAreaTeleporter;
 import brightspark.structuralrelocation.util.CommonUtils;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
@@ -55,19 +53,12 @@ public class ItemDebugger extends ItemBasic
     @Override
     public EnumActionResult onItemUseFirst(EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ, EnumHand hand)
     {
-        if(world.isRemote)
-        {
-            if(player instanceof EntityPlayerSP)
-                //Send a packet to process this on the server, because MC won't do it if I return anything other than PASS
-                ((EntityPlayerSP) player).connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(pos, side, hand, hitX, hitY, hitZ));
-            return EnumActionResult.SUCCESS;
-        }
-
         //Set teleporter position
         if(world.getTileEntity(pos) instanceof TileAreaTeleporter)
         {
             setTeleporterLoc(player.getHeldItem(hand), new Location(world, pos));
-            player.sendMessage(new TextComponentString("Linked to teleporter"));
+            if(world.isRemote)
+                player.sendMessage(new TextComponentString("Linked to teleporter"));
             return EnumActionResult.SUCCESS;
         }
         return EnumActionResult.PASS;
