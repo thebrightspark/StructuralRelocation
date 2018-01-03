@@ -126,9 +126,9 @@ public abstract class AbstractTileTeleporter extends TileEntity
             if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block " + blockName + " at " + pos.toString() + " in dimension " + world.provider.getDimension() + " -> No permission to modify destination.");
             return false;
         }
-        if(!world.isAirBlock(pos) && !world.getBlockState(pos).getBlock().isReplaceable(world, pos) && isFluidSourceBlock(world, pos))
+        if((!world.isAirBlock(pos) && !world.getBlockState(pos).getBlock().isReplaceable(world, pos)) || isFluidSourceBlock(world, pos))
         {
-            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block " + blockName + " at " + pos.toString() + " in dimension " + world.provider.getDimension() + " -> Destination block is air, not replaceable or is a fluid source block.");
+            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block " + blockName + " at " + pos.toString() + " in dimension " + world.provider.getDimension() + " -> Destination block is not air, not replaceable or is a fluid source block.");
             return false;
         }
         return true;
