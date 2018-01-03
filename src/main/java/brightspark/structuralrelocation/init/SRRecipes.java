@@ -10,8 +10,9 @@ public class SRRecipes
 {
     public static void init()
     {
-        GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(SRItems.itemSelector), " g ", "grg", " g ", 'g', Items.GOLD_INGOT, 'r', Blocks.END_ROD));
-        GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(SRBlocks.singleTeleporter), "grg", "oro", "ooo", 'g', Items.GOLD_INGOT, 'r', Blocks.END_ROD, 'o', Blocks.OBSIDIAN));
-        GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(SRBlocks.areaTeleporter), "drd", "oro", "ooo", 'd', Items.DIAMOND, 'r', Blocks.END_ROD, 'o', Blocks.OBSIDIAN));
+        GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(SRItems.itemSelector), " g ", "grg", " g ", 'g', "ingotGold", 'r', Blocks.END_ROD));
+        GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(SRItems.itemDebugger), " i ", "ibi", " i ", 'i', "ingotIron", 'b', Items.BLAZE_ROD));
+        GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(SRBlocks.singleTeleporter), "grg", "oro", "ooo", 'g', "ingotGold", 'r', Blocks.END_ROD, 'o', "obsidian"));
+        GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(SRBlocks.areaTeleporter), "drd", "oro", "ooo", 'd', "gemDiamond", 'r', Blocks.END_ROD, 'o', "obsidian"));
     }
 }
