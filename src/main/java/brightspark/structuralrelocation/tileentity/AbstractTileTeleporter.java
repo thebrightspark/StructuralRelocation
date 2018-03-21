@@ -1,9 +1,9 @@
 package brightspark.structuralrelocation.tileentity;
 
-import brightspark.structuralrelocation.Config;
+import brightspark.structuralrelocation.SRConfig;
 import brightspark.structuralrelocation.Location;
 import brightspark.structuralrelocation.SREnergyStorage;
-import brightspark.structuralrelocation.util.LogHelper;
+import brightspark.structuralrelocation.StructuralRelocation;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.state.IBlockState;
@@ -74,7 +74,7 @@ public abstract class AbstractTileTeleporter extends TileEntity
         BlockPos pos = location.position;
         if(!world.isBlockModifiable(getLastPlayer(), pos))
         {
-            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block " + world.getBlockState(pos).getBlock().getRegistryName().toString() + " at " + pos.toString() + " -> No permission to modify block.");
+            if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport block " + world.getBlockState(pos).getBlock().getRegistryName().toString() + " at " + pos.toString() + " -> No permission to modify block.");
             return false;
         }
         return canCopyBlock(location);
@@ -91,17 +91,17 @@ public abstract class AbstractTileTeleporter extends TileEntity
         String blockName = state.getBlock().getRegistryName().toString();
         if(world.isAirBlock(pos))
         {
-            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block " + blockName + " at " + pos.toString() + " -> Is an air block.");
+            if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport block " + blockName + " at " + pos.toString() + " -> Is an air block.");
             return false;
         }
         if((getLastPlayer() != null && !getLastPlayer().capabilities.isCreativeMode) && state.getBlock().getBlockHardness(state, world, pos) < 0)
         {
-            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block " + blockName + " at " + pos.toString() + " -> Block is unbreakable.");
+            if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport block " + blockName + " at " + pos.toString() + " -> Block is unbreakable.");
             return false;
         }
-        if(isFluidSourceBlock(world, pos) && !Config.canTeleportFluids)
+        if(isFluidSourceBlock(world, pos) && ! SRConfig.canTeleportFluids)
         {
-            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block " + blockName + " at " + pos.toString() + " -> Block is a fluid source.");
+            if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport block " + blockName + " at " + pos.toString() + " -> Block is a fluid source.");
             return false;
         }
         return true;
@@ -123,12 +123,12 @@ public abstract class AbstractTileTeleporter extends TileEntity
         String blockName = world.getBlockState(pos).getBlock().getRegistryName().toString();
         if(!world.isBlockModifiable(getLastPlayer(), pos))
         {
-            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block " + blockName + " at " + pos.toString() + " in dimension " + world.provider.getDimension() + " -> No permission to modify destination.");
+            if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport block " + blockName + " at " + pos.toString() + " in dimension " + world.provider.getDimension() + " -> No permission to modify destination.");
             return false;
         }
         if((!world.isAirBlock(pos) && !world.getBlockState(pos).getBlock().isReplaceable(world, pos)) || isFluidSourceBlock(world, pos))
         {
-            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport block " + blockName + " at " + pos.toString() + " in dimension " + world.provider.getDimension() + " -> Destination block is not air, not replaceable or is a fluid source block.");
+            if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport block " + blockName + " at " + pos.toString() + " in dimension " + world.provider.getDimension() + " -> Destination block is not air, not replaceable or is a fluid source block.");
             return false;
         }
         return true;
@@ -167,8 +167,8 @@ public abstract class AbstractTileTeleporter extends TileEntity
      */
     protected void teleportBlock(Location from, Location to, boolean moveTileEntities)
     {
-        if(doTeleporterAction(from, to, moveTileEntities, true) && Config.debugTeleportMessages)
-            LogHelper.info("Successfully teleported block from " + from.toString() + " to " + to.toString());
+        if(doTeleporterAction(from, to, moveTileEntities, true) && SRConfig.debugTeleportMessages)
+            StructuralRelocation.LOGGER.info("Successfully teleported block from " + from.toString() + " to " + to.toString());
     }
 
     /**
@@ -184,8 +184,8 @@ public abstract class AbstractTileTeleporter extends TileEntity
      */
     protected void copyBlock(Location from, Location to, boolean copyTileEntities)
     {
-        if(doTeleporterAction(from, to, copyTileEntities, false) && Config.debugTeleportMessages)
-            LogHelper.info("Successfully copied block from " + from.toString() + " to " + to.toString() + " in dimension " + to.dimensionId);
+        if(doTeleporterAction(from, to, copyTileEntities, false) && SRConfig.debugTeleportMessages)
+            StructuralRelocation.LOGGER.info("Successfully copied block from " + from.toString() + " to " + to.toString() + " in dimension " + to.dimensionId);
     }
 
     private boolean doTeleporterAction(Location from, Location to, boolean handleTileEntities, boolean removeBlocks)
@@ -208,7 +208,7 @@ public abstract class AbstractTileTeleporter extends TileEntity
             }
             catch(Exception e)
             {
-                LogHelper.error("Couldn't create a new instance of the TileEntity at " + from.toString());
+                StructuralRelocation.LOGGER.error("Couldn't create a new instance of the TileEntity at " + from.toString());
                 e.printStackTrace();
                 return false;
             }
@@ -260,9 +260,9 @@ public abstract class AbstractTileTeleporter extends TileEntity
 
     protected int calcEnergyCost(Location from, Location to)
     {
-        int cost = Config.energyPerBlockBase + (int) Math.ceil(Config.energyPerDistanceMultiplier * 20F * Math.ceil(Math.log(from.distanceTo(to))));
+        int cost = SRConfig.energyPerBlockBase + (int) Math.ceil(SRConfig.energyPerDistanceMultiplier * 20F * Math.ceil(Math.log(from.distanceTo(to))));
         if(from.dimensionId != to.dimensionId)
-            cost *= Config.energyAcrossDimensionsMultiplier;
+            cost *= SRConfig.energyAcrossDimensionsMultiplier;
         return cost;
     }
 

@@ -1,11 +1,11 @@
 package brightspark.structuralrelocation.tileentity;
 
-import brightspark.structuralrelocation.Config;
+import brightspark.structuralrelocation.SRConfig;
 import brightspark.structuralrelocation.Location;
 import brightspark.structuralrelocation.LocationArea;
+import brightspark.structuralrelocation.StructuralRelocation;
 import brightspark.structuralrelocation.message.MessageUpdateClientTeleporterObstruction;
 import brightspark.structuralrelocation.util.CommonUtils;
-import brightspark.structuralrelocation.util.LogHelper;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ITickable;
@@ -92,7 +92,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         if(world.isRemote) return false;
         if(toMove == null || target == null || curBlock != null)
         {
-            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport. Either no target set or no area set.");
+            if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport. Either no target set or no area set.");
             return false;
         }
 
@@ -119,7 +119,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
                 }
                 //Update client teleporter so the Debugger item can be used
                 CommonUtils.NETWORK.sendToAll(new MessageUpdateClientTeleporterObstruction(pos, checkPos));
-                if(Config.debugTeleportMessages) LogHelper.info("Can not teleport. Destination area contains an obstruction at " + checkPos.toString() + " in dimension " + targetDim.provider.getDimension());
+                if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport. Destination area contains an obstruction at " + checkPos.toString() + " in dimension " + targetDim.provider.getDimension());
                 return false;
             }
         }
@@ -138,16 +138,16 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
     public void teleport(EntityPlayer player)
     {
         super.teleport(player);
-        if(doPreActionChecks() && Config.debugTeleportMessages)
-            LogHelper.info("Area teleportation successfully started.");
+        if(doPreActionChecks() && SRConfig.debugTeleportMessages)
+            StructuralRelocation.LOGGER.info("Area teleportation successfully started.");
     }
 
     @Override
     public void copy(EntityPlayer player)
     {
         super.copy(player);
-        if(doPreActionChecks() && Config.debugTeleportMessages)
-            LogHelper.info("Area copy successfully started.");
+        if(doPreActionChecks() && SRConfig.debugTeleportMessages)
+            StructuralRelocation.LOGGER.info("Area copy successfully started.");
     }
 
     /**
@@ -157,7 +157,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
     {
         curBlock = null;
         markDirty();
-        if(Config.debugTeleportMessages) LogHelper.info("Teleportation stopped.");
+        if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Teleportation stopped.");
     }
 
     @Override
@@ -169,9 +169,9 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         Location to = new Location(target.world, target.position.add(curBlock));
         if(!hasEnoughEnergy(from, to))
         {
-            if(Config.debugTeleportMessages && !checkedEnergy)
+            if(SRConfig.debugTeleportMessages && !checkedEnergy)
             {
-                LogHelper.info("Can not teleport. Not enough power.");
+                StructuralRelocation.LOGGER.info("Can not teleport. Not enough power.");
                 checkedEnergy = true;
             }
             return;
@@ -208,7 +208,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         //Skip air and unbreakable blocks
         while(curBlock != null && !(isCopying ? canCopyBlock(from) : canTeleportBlock(from)));
 
-        if(curBlock == null && Config.debugTeleportMessages) LogHelper.info("Area " + (isCopying ? "copying" : "teleportation") + " complete.");
+        if(curBlock == null && SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Area " + (isCopying ? "copying" : "teleportation") + " complete.");
 
         markDirty();
     }

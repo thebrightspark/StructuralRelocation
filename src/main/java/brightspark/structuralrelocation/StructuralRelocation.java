@@ -1,9 +1,7 @@
 package brightspark.structuralrelocation;
 
-import brightspark.structuralrelocation.handler.ConfigHandler;
 import brightspark.structuralrelocation.handler.GuiHandler;
 import brightspark.structuralrelocation.init.SRBlocks;
-import brightspark.structuralrelocation.init.SRRecipes;
 import brightspark.structuralrelocation.util.CommonUtils;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.init.Items;
@@ -13,6 +11,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
+import org.apache.logging.log4j.Logger;
 
 @Mod(modid = StructuralRelocation.MOD_ID, name = StructuralRelocation.MOD_NAME, version = StructuralRelocation.VERSION)
 public class StructuralRelocation
@@ -23,6 +22,7 @@ public class StructuralRelocation
     public static final String GUI_TEXTURE_DIR = "textures/gui/";
 
     public static Boolean IS_DEV;
+    public static Logger LOGGER;
 
     @Mod.Instance(MOD_ID)
     public static StructuralRelocation instance;
@@ -34,21 +34,16 @@ public class StructuralRelocation
         {
             return new ItemStack(Items.ENDER_PEARL);
         }
-
-        @Override
-        public String getTranslatedTabLabel()
-        {
-            return MOD_NAME;
-        }
     };
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event)
     {
         //Initialize item, blocks, textures/models and configs here
+
+        LOGGER = event.getModLog();
         IS_DEV = (Boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment");
 
-        ConfigHandler.init(event.getSuggestedConfigurationFile());
         CommonUtils.regNetwork();
     }
 
@@ -58,7 +53,6 @@ public class StructuralRelocation
         //Initialize GUIs, tile entities, recipies, event handlers here
 
         SRBlocks.regTileEntities();
-        SRRecipes.init();
 
         NetworkRegistry.INSTANCE.registerGuiHandler(instance, new GuiHandler());
     }

@@ -1,8 +1,8 @@
 package brightspark.structuralrelocation.message;
 
+import brightspark.structuralrelocation.StructuralRelocation;
 import brightspark.structuralrelocation.tileentity.AbstractTileTeleporter;
 import brightspark.structuralrelocation.tileentity.TileAreaTeleporter;
-import brightspark.structuralrelocation.util.LogHelper;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
@@ -65,14 +65,14 @@ public class MessageGuiTeleport implements IMessage
                     EntityPlayer player = world.getPlayerEntityByUUID(message.playerUUID);
                     if(player == null)
                     {
-                        LogHelper.warn("Player could not be found when trying to click teleporter GUI button. UUID: " + message.playerUUID.toString());
+                        StructuralRelocation.LOGGER.warn("Player could not be found when trying to click teleporter GUI button. UUID: " + message.playerUUID.toString());
                         return;
                     }
 
                     TileEntity te = world.getTileEntity(message.pos);
                     if(!(te instanceof AbstractTileTeleporter))
                     {
-                        LogHelper.warn("Teleporter could not be found when trying to click teleporter GUI button. Pos: " + message.pos.toString());
+                        StructuralRelocation.LOGGER.warn("Teleporter could not be found when trying to click teleporter GUI button. Pos: " + message.pos.toString());
                         return;
                     }
                     AbstractTileTeleporter teleporter = (AbstractTileTeleporter) te;
@@ -93,7 +93,7 @@ public class MessageGuiTeleport implements IMessage
                                 ((TileAreaTeleporter) teleporter).stop();
                             break;
                         default:
-                            LogHelper.warn("Unhandled button ID '" + message.buttonId + "' for teleporter GUI!");
+                            StructuralRelocation.LOGGER.warn("Unhandled button ID '" + message.buttonId + "' for teleporter GUI!");
                     }
                 }
             });

@@ -23,7 +23,7 @@ public abstract class AbstractBlockContainer extends BlockBasic implements ITile
     public AbstractBlockContainer(String name, Material mat)
     {
         super(name, mat);
-        isBlockContainer = true;
+        hasTileEntity = true;
     }
 
     public void setHasGui()

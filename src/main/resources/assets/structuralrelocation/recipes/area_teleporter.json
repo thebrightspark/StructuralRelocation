@@ -1,0 +1,26 @@
+{
+    "type": "forge:ore_shaped",
+    "pattern": [
+        "DRD",
+        "ORO",
+        "OOO"
+    ],
+    "key": {
+        "D": {
+            "type": "forge:ore_dict",
+            "ore": "gemDiamond"
+        },
+        "R": {
+            "item": "minecraft:end_rod",
+            "data": 0
+        },
+        "O": {
+            "type": "forge:ore_dict",
+            "ore": "obsidian"
+        }
+    },
+    "result": {
+        "item": "structuralrelocation:area_teleporter",
+        "data": 0
+    }
+}

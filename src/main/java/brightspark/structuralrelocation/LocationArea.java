@@ -1,7 +1,6 @@
 package brightspark.structuralrelocation;
 
-import brightspark.structuralrelocation.util.LogHelper;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -73,7 +72,7 @@ public class LocationArea implements INBTSerializable<NBTTagCompound>
             case Z:
                 return maxPos.getZ() - minPos.getZ() + 1;
             default:
-                LogHelper.error("Unhandled axis!?");
+                StructuralRelocation.LOGGER.error("Unhandled axis!?");
                 return -1;
         }
     }
@@ -84,7 +83,7 @@ public class LocationArea implements INBTSerializable<NBTTagCompound>
     public boolean isTooBig()
     {
         for(EnumFacing.Axis axis : EnumFacing.Axis.values())
-            if(getSize(axis) > Config.maxTeleportAreaSize)
+            if(getSize(axis) > SRConfig.maxTeleportAreaSize)
                 return true;
         return false;
     }
@@ -133,7 +132,7 @@ public class LocationArea implements INBTSerializable<NBTTagCompound>
     @Override
     public String toString()
     {
-        return Objects.toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
                 .add("dim", dimensionId)
                 .add("pos1", pos1.toString())
                 .add("pos2", pos2.toString()).toString();

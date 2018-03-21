@@ -8,7 +8,6 @@ import brightspark.structuralrelocation.tileentity.AbstractTileTeleporter;
 import brightspark.structuralrelocation.tileentity.TileAreaTeleporter;
 import brightspark.structuralrelocation.tileentity.TileSingleTeleporter;
 import brightspark.structuralrelocation.util.CommonUtils;
-import brightspark.structuralrelocation.util.LogHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
@@ -33,7 +32,7 @@ public class GuiTeleporter extends GuiContainer
     public AbstractTileTeleporter teleporter;
     protected boolean isAreaTeleporter;
     protected final Rectangle energyBar = new Rectangle(11, 16, 10, 63);
-    protected List<Icon> iconList = new ArrayList<Icon>();
+    protected List<Icon> iconList = new ArrayList<>();
 
     private Icon iconTarget, iconArea, iconStatus;
 
@@ -94,7 +93,7 @@ public class GuiTeleporter extends GuiContainer
 
             //Target Icon
             Location target = areaTE.getTarget();
-            List<String> tooltipTarget = new ArrayList<String>();
+            List<String> tooltipTarget = new ArrayList<>();
             tooltipTarget.add(TextFormatting.GOLD + "Destination Target:");
             if(target == null)
                 tooltipTarget.add(TextFormatting.RED + "Target not set!");
@@ -108,7 +107,7 @@ public class GuiTeleporter extends GuiContainer
 
             //Area Icon
             LocationArea area = areaTE.getAreaToMove();
-            List<String> tooltipArea = new ArrayList<String>();
+            List<String> tooltipArea = new ArrayList<>();
             tooltipArea.add(TextFormatting.GOLD + "Area To Move:");
             if(area == null)
                 tooltipArea.add(TextFormatting.RED + "Area not set!");
@@ -124,7 +123,7 @@ public class GuiTeleporter extends GuiContainer
 
             //Status Icon
             EnumIconBackground status = areaTE.isActive() ? areaTE.hasEnoughEnergy() ? EnumIconBackground.ON : EnumIconBackground.RED : EnumIconBackground.OFF;
-            List<String> tooltipStatus = new ArrayList<String>();
+            List<String> tooltipStatus = new ArrayList<>();
             tooltipStatus.add(TextFormatting.GOLD + "Status:");
             switch(status)
             {
@@ -146,7 +145,7 @@ public class GuiTeleporter extends GuiContainer
 
             //Target Icon
             Location target = singleTE.getTarget();
-            List<String> tooltipTarget = new ArrayList<String>();
+            List<String> tooltipTarget = new ArrayList<>();
             tooltipTarget.add(TextFormatting.GOLD + "Destination Target:");
             if(target == null)
                 tooltipTarget.add(TextFormatting.RED + "Target not set!");
@@ -160,7 +159,7 @@ public class GuiTeleporter extends GuiContainer
 
             //Status Icon
             boolean hasEnoughEnergy = singleTE.hasEnoughEnergy();
-            List<String> tooltipStatus = new ArrayList<String>();
+            List<String> tooltipStatus = new ArrayList<>();
             tooltipStatus.add(TextFormatting.GOLD + "Status:");
             if(target == null)
                 tooltipStatus.add(TextFormatting.RED + "Target not set!");
@@ -302,7 +301,7 @@ public class GuiTeleporter extends GuiContainer
         }
 
         @Override
-        public void drawButton(Minecraft mc, int mouseX, int mouseY)
+        public void drawButton(Minecraft mc, int mouseX, int mouseY, float partialTicks)
         {
             if(!visible) return;
             FontRenderer fontrenderer = mc.fontRenderer;

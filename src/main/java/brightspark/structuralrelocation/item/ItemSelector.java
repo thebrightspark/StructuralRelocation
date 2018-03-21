@@ -9,9 +9,9 @@ import brightspark.structuralrelocation.tileentity.AbstractTileTeleporter;
 import brightspark.structuralrelocation.tileentity.TileAreaTeleporter;
 import brightspark.structuralrelocation.tileentity.TileSingleTeleporter;
 import brightspark.structuralrelocation.util.CommonUtils;
-import brightspark.structuralrelocation.util.LogHelper;
 import net.minecraft.block.Block;
 import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -26,8 +26,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.FMLCommonHandler;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class ItemSelector extends ItemBasic
@@ -121,7 +121,7 @@ public class ItemSelector extends ItemBasic
         if(player.world.isRemote)
             player.sendMessage(new TextComponentString(message));
         else
-            LogHelper.info("Client message -> " + message);
+            StructuralRelocation.LOGGER.info("Client message -> " + message);
     }
 
     /**
@@ -131,12 +131,12 @@ public class ItemSelector extends ItemBasic
     @Override
     public EnumActionResult onItemUseFirst(EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ, EnumHand hand)
     {
-        LogHelper.info("onItemUseFirst -> " + (world.isRemote ? "Client" : "Server"));
+        StructuralRelocation.LOGGER.info("onItemUseFirst -> " + (world.isRemote ? "Client" : "Server"));
 
         if(StructuralRelocation.IS_DEV && world.isRemote && player instanceof EntityPlayerSP)
         {
             //Send a packet to process this on the server, because MC won't do it if I return anything other than PASS in a dev environment
-            LogHelper.info("Sending packet to server");
+            StructuralRelocation.LOGGER.info("Sending packet to server");
             ((EntityPlayerSP) player).connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(pos, side, hand, hitX, hitY, hitZ));
         }
 
@@ -236,13 +236,13 @@ public class ItemSelector extends ItemBasic
             //Switch mode
             nextMode(stack);
             sendMessage(player, "Changed mode to " + getMode(stack).toString().toLowerCase() + " mode.");
-            return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, stack);
+            return new ActionResult<>(EnumActionResult.SUCCESS, stack);
         }
-        return new ActionResult<ItemStack>(EnumActionResult.PASS, stack);
+        return new ActionResult<>(EnumActionResult.PASS, stack);
     }
 
     @Override
-    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced)
+    public void addInformation(ItemStack stack, @Nullable World world, List<String> tooltip, ITooltipFlag flag)
     {
         EnumSelection mode = getMode(stack);
         tooltip.add(TextFormatting.YELLOW + "Mode: " + TextFormatting.GRAY + mode.toString().toUpperCase());
@@ -297,7 +297,7 @@ public class ItemSelector extends ItemBasic
      * @param item the ItemStack for the item.
      * @param displayName the name that will be displayed unless it is changed in this method.
      */
-    public String getHighlightTip( ItemStack item, String displayName )
+    public String getHighlightTip(ItemStack item, String displayName)
     {
         return displayName + " [" + TextFormatting.GOLD + getMode(item).toString() + TextFormatting.RESET + "]";
     }

@@ -1,8 +1,8 @@
 package brightspark.structuralrelocation.tileentity;
 
-import brightspark.structuralrelocation.Config;
+import brightspark.structuralrelocation.SRConfig;
 import brightspark.structuralrelocation.Location;
-import brightspark.structuralrelocation.util.LogHelper;
+import brightspark.structuralrelocation.StructuralRelocation;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -44,7 +44,7 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
         if(world.isRemote) return false;
         if(!canTeleport())
         {
-            if(Config.debugTeleportMessages) LogHelper.info("Can not teleport. Either no target set or not enough power.");
+            if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport. Either no target set or not enough power.");
             return false;
         }
         return true;
@@ -57,7 +57,7 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
         if(doPreActionChecks())
         {
             teleportBlock(toTeleport, target);
-            if(Config.debugTeleportMessages) LogHelper.info("Block Teleported");
+            if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Block Teleported");
         }
     }
 
@@ -68,7 +68,7 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
         if(doPreActionChecks())
         {
             copyBlock(toTeleport, target);
-            if(Config.debugTeleportMessages) LogHelper.info("Block Copied");
+            if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Block Copied");
         }
     }
 

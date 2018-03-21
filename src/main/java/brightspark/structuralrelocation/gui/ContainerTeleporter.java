@@ -2,6 +2,7 @@ package brightspark.structuralrelocation.gui;
 
 import brightspark.structuralrelocation.Location;
 import brightspark.structuralrelocation.LocationArea;
+import brightspark.structuralrelocation.StructuralRelocation;
 import brightspark.structuralrelocation.message.MessageUpdateClientContainer;
 import brightspark.structuralrelocation.message.MessageUpdateTeleporterCurBlock;
 import brightspark.structuralrelocation.message.MessageUpdateTeleporterLocation;
@@ -9,7 +10,6 @@ import brightspark.structuralrelocation.tileentity.AbstractTileTeleporter;
 import brightspark.structuralrelocation.tileentity.TileAreaTeleporter;
 import brightspark.structuralrelocation.tileentity.TileSingleTeleporter;
 import brightspark.structuralrelocation.util.CommonUtils;
-import brightspark.structuralrelocation.util.LogHelper;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -118,7 +118,7 @@ public class ContainerTeleporter extends Container
                 teleporter.setEnergy(data);
                 break;
             default:
-                LogHelper.warn("Unhandled client container data for ID " + id + "!");
+                StructuralRelocation.LOGGER.warn("Unhandled client container data for ID " + id + "!");
         }
     }
 

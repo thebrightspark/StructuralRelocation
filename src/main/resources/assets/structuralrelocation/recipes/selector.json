@@ -1,0 +1,22 @@
+{
+    "type": "forge:ore_shaped",
+    "pattern": [
+        " G ",
+        "GRG",
+        " G "
+    ],
+    "key": {
+        "G": {
+            "type": "forge:ore_dict",
+            "ore": "ingotGold"
+        },
+        "R": {
+            "item": "minecraft:end_rod",
+            "data": 0
+        }
+    },
+    "result": {
+        "item": "structuralrelocation:selector",
+        "data": 0
+    }
+}

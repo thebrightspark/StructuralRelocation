@@ -1,0 +1,26 @@
+{
+    "type": "forge:ore_shaped",
+    "pattern": [
+        "GRG",
+        "ORO",
+        "OOO"
+    ],
+    "key": {
+        "G": {
+            "type": "forge:ore_dict",
+            "ore": "ingotGold"
+        },
+        "R": {
+            "item": "minecraft:end_rod",
+            "data": 0
+        },
+        "O": {
+            "type": "forge:ore_dict",
+            "ore": "obsidian"
+        }
+    },
+    "result": {
+        "item": "structuralrelocation:single_teleporter",
+        "data": 0
+    }
+}

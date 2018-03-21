@@ -1,7 +1,7 @@
 package brightspark.structuralrelocation;
 
 import brightspark.structuralrelocation.util.CommonUtils;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
@@ -101,7 +101,7 @@ public class Location implements INBTSerializable<NBTTagCompound>
     @Override
     public String toString()
     {
-        return Objects.toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
                 .add("dim", dimensionId)
                 .add("pos", position.toString()).toString();
     }

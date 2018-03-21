@@ -42,7 +42,7 @@ public abstract class AbstractBlockTeleporter extends AbstractBlockContainer
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ)
     {
         ItemStack heldItem = playerIn.getHeldItem(hand);
-        //LogHelper.info("Item Activated With: " + (heldItem == null ? "Null" : heldItem.toString()));
+        //StructuralRelocation.LOGGER.info("Item Activated With: " + (heldItem == null ? "Null" : heldItem.toString()));
         if(heldItem != null && heldItem.getItem() instanceof ItemSelector)
             return false;
         return super.onBlockActivated(worldIn, pos, state, playerIn, hand, side, hitX, hitY, hitZ);
