@@ -105,33 +105,27 @@ public abstract class AbstractTileTeleporter extends TileEntity
     protected boolean checkSource(World worldIn, BlockPos posIn, IBlockState state, boolean copy)
     {
         String blockName = state.getBlock().getRegistryName().toString();
-        if(copy)
+        if(world.isAirBlock(pos))
         {
-            if(world.isAirBlock(pos))
-            {
-                if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport/copy block " + blockName + " at " + pos.toString() + " -> Is an air block.");
-                return false;
-            }
-            if((getLastPlayer() != null && !getLastPlayer().capabilities.isCreativeMode) && state.getBlock().getBlockHardness(state, world, pos) < 0)
-            {
-                if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport/copy block " + blockName + " at " + pos.toString() + " -> Block is unbreakable.");
-                return false;
-            }
-            if(isFluidSourceBlock(world, pos) && !SRConfig.canTeleportFluids)
-            {
-                if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport/copy block " + blockName + " at " + pos.toString() + " -> Block is a fluid source.");
-                return false;
-            }
+            if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport/copy block " + blockName + " at " + pos.toString() + " -> Is an air block.");
+            return false;
         }
-        else
+        if((getLastPlayer() != null && !getLastPlayer().capabilities.isCreativeMode) && state.getBlock().getBlockHardness(state, world, pos) < 0)
         {
-            if(!checkSource(worldIn, posIn, state, true))
-                return false;
-            if(!MinecraftForge.EVENT_BUS.post(new BlockEvent.BreakEvent(worldIn, posIn, state, getLastPlayer())))
-            {
-                if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport block " + blockName + " at " + pos.toString() + " -> BreakEvent cancelled.");
-                return false;
-            }
+            if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport/copy block " + blockName + " at " + pos.toString() + " -> Block is unbreakable.");
+            return false;
+        }
+        if(isFluidSourceBlock(world, pos) && !SRConfig.canTeleportFluids)
+        {
+            if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport/copy block " + blockName + " at " + pos.toString() + " -> Block is a fluid source.");
+            return false;
+        }
+
+        //Fire BreakEvent if teleporting
+        if(!copy && !MinecraftForge.EVENT_BUS.post(new BlockEvent.BreakEvent(worldIn, posIn, state, getLastPlayer())))
+        {
+            if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport block " + blockName + " at " + pos.toString() + " -> BreakEvent cancelled.");
+            return false;
         }
         return true;
     }
