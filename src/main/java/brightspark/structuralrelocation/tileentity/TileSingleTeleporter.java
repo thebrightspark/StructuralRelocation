@@ -29,11 +29,6 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
         return target;
     }
 
-    private boolean canTeleport()
-    {
-        return target != null && hasEnoughEnergy(toTeleport, target) && isDestinationClear(target);
-    }
-
     public boolean hasEnoughEnergy()
     {
         return hasEnoughEnergy(toTeleport, target);
@@ -42,7 +37,7 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
     private boolean doPreActionChecks()
     {
         if(world.isRemote) return false;
-        if(!canTeleport())
+        if(target == null || !hasEnoughEnergy(toTeleport, target) || !checkDestination(target))
         {
             if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport. Either no target set or not enough power.");
             return false;

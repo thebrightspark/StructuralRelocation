@@ -105,7 +105,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         while(positions.hasNext())
         {
             BlockPos checkPos = positions.next();
-            if(!isDestinationClear(targetDim, checkPos))
+            if(!checkDestination(new Location(targetDim, checkPos)))
             {
                 lastBlockInTheWay = checkPos;
                 EntityPlayer player = getLastPlayer();
@@ -119,7 +119,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
                 }
                 //Update client teleporter so the Debugger item can be used
                 CommonUtils.NETWORK.sendToAll(new MessageUpdateClientTeleporterObstruction(pos, checkPos));
-                if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport. Destination area contains an obstruction at " + checkPos.toString() + " in dimension " + targetDim.provider.getDimension());
+                if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport. Destination area contains an obstruction at " + checkPos.toString() + " in dimension " + target.dimensionId);
                 return false;
             }
         }
@@ -206,7 +206,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
             from.position = curBlock == null ? null : toMoveMin.add(curBlock);
         }
         //Skip air and unbreakable blocks
-        while(curBlock != null && !(isCopying ? canCopyBlock(from) : canTeleportBlock(from)));
+        while(curBlock != null && !checkSource(from, isCopying));
 
         if(curBlock == null && SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Area " + (isCopying ? "copying" : "teleportation") + " complete.");
 

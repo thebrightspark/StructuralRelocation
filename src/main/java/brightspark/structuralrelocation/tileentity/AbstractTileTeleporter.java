@@ -11,10 +11,15 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.BlockSnapshot;
 import net.minecraftforge.energy.CapabilityEnergy;
+import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.fluids.IFluidBlock;
 
 import java.util.UUID;
@@ -42,6 +47,9 @@ public abstract class AbstractTileTeleporter extends TileEntity
         return world.getTileEntity(pos) == this && player.getDistanceSq((double)pos.getX() + 0.5D, (double)pos.getY() + 0.5D, (double)pos.getZ() + 0.5D) <= 64.0D;
     }
 
+    /**
+     * Gets the last player to start a teleport/copy
+     */
     public EntityPlayer getLastPlayer()
     {
         if(lastPlayer != null) return lastPlayer;
@@ -59,79 +67,14 @@ public abstract class AbstractTileTeleporter extends TileEntity
         isCopying = false;
     }
 
+    /**
+     * Tries to start the copying
+     * Player argument is the one who activated the block, and is used to send messages to
+     */
     public void copy(EntityPlayer player)
     {
         lastPlayerUUID = player.getUniqueID();
         isCopying = true;
-    }
-
-    /**
-     * Checks that the block can be teleported by the player who started the teleport
-     */
-    protected boolean canTeleportBlock(Location location)
-    {
-        World world = location.world;
-        BlockPos pos = location.position;
-        if(!world.isBlockModifiable(getLastPlayer(), pos))
-        {
-            if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport block " + world.getBlockState(pos).getBlock().getRegistryName().toString() + " at " + pos.toString() + " -> No permission to modify block.");
-            return false;
-        }
-        return canCopyBlock(location);
-    }
-
-    /**
-     * Checks that the block can be copied by the player who started the copy
-     */
-    protected boolean canCopyBlock(Location location)
-    {
-        World world = location.world;
-        BlockPos pos = location.position;
-        IBlockState state = world.getBlockState(pos);
-        String blockName = state.getBlock().getRegistryName().toString();
-        if(world.isAirBlock(pos))
-        {
-            if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport block " + blockName + " at " + pos.toString() + " -> Is an air block.");
-            return false;
-        }
-        if((getLastPlayer() != null && !getLastPlayer().capabilities.isCreativeMode) && state.getBlock().getBlockHardness(state, world, pos) < 0)
-        {
-            if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport block " + blockName + " at " + pos.toString() + " -> Block is unbreakable.");
-            return false;
-        }
-        if(isFluidSourceBlock(world, pos) && ! SRConfig.canTeleportFluids)
-        {
-            if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport block " + blockName + " at " + pos.toString() + " -> Block is a fluid source.");
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Checks if a block can be teleported to the location
-     */
-    protected boolean isDestinationClear(Location location)
-    {
-        return isDestinationClear(location.world, location.position);
-    }
-
-    /**
-     * Checks if a block can be teleported to the location
-     */
-    protected boolean isDestinationClear(World world, BlockPos pos)
-    {
-        String blockName = world.getBlockState(pos).getBlock().getRegistryName().toString();
-        if(!world.isBlockModifiable(getLastPlayer(), pos))
-        {
-            if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport block " + blockName + " at " + pos.toString() + " in dimension " + world.provider.getDimension() + " -> No permission to modify destination.");
-            return false;
-        }
-        if((!world.isAirBlock(pos) && !world.getBlockState(pos).getBlock().isReplaceable(world, pos)) || isFluidSourceBlock(world, pos))
-        {
-            if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport block " + blockName + " at " + pos.toString() + " in dimension " + world.provider.getDimension() + " -> Destination block is not air, not replaceable or is a fluid source block.");
-            return false;
-        }
-        return true;
     }
 
     /**
@@ -154,20 +97,79 @@ public abstract class AbstractTileTeleporter extends TileEntity
                 block instanceof BlockLiquid && state.getValue(BlockLiquid.LEVEL) == 0;
     }
 
-    /**
-     * Teleports the block to the given location
-     */
-    protected void teleportBlock(Location from, Location to)
+    protected boolean checkSource(Location location, boolean copy)
     {
-        teleportBlock(from, to, true);
+        return checkSource(location.world, location.position, location.getBlockState(), copy);
+    }
+
+    protected boolean checkSource(World worldIn, BlockPos posIn, IBlockState state, boolean copy)
+    {
+        String blockName = state.getBlock().getRegistryName().toString();
+        if(copy)
+        {
+            if(world.isAirBlock(pos))
+            {
+                if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport/copy block " + blockName + " at " + pos.toString() + " -> Is an air block.");
+                return false;
+            }
+            if((getLastPlayer() != null && !getLastPlayer().capabilities.isCreativeMode) && state.getBlock().getBlockHardness(state, world, pos) < 0)
+            {
+                if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport/copy block " + blockName + " at " + pos.toString() + " -> Block is unbreakable.");
+                return false;
+            }
+            if(isFluidSourceBlock(world, pos) && !SRConfig.canTeleportFluids)
+            {
+                if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport/copy block " + blockName + " at " + pos.toString() + " -> Block is a fluid source.");
+                return false;
+            }
+        }
+        else
+        {
+            if(!checkSource(worldIn, posIn, state, true))
+                return false;
+            if(!MinecraftForge.EVENT_BUS.post(new BlockEvent.BreakEvent(worldIn, posIn, state, getLastPlayer())))
+            {
+                if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport block " + blockName + " at " + pos.toString() + " -> BreakEvent cancelled.");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    protected boolean checkDestination(Location location)
+    {
+        return checkDestination(location.world, location.dimensionId, location.position, location.getBlockState());
+    }
+
+    protected boolean checkDestination(World worldIn, int dimensionId, BlockPos posIn, IBlockState state)
+    {
+        String blockName = state.getBlock().getRegistryName().toString();
+
+        if(!worldIn.isBlockModifiable(getLastPlayer(), posIn))
+        {
+            if(SRConfig.debugTeleportMessages)
+                StructuralRelocation.LOGGER.info("Can not teleport block " + blockName + " at " + posIn.toString() + " in dimension " + dimensionId + " -> No permission to modify destination.");
+            return false;
+        }
+        if((!worldIn.isAirBlock(posIn) && !worldIn.getBlockState(posIn).getBlock().isReplaceable(worldIn, posIn)) || isFluidSourceBlock(worldIn, posIn))
+        {
+            if(SRConfig.debugTeleportMessages)
+                StructuralRelocation.LOGGER.info("Can not teleport block " + blockName + " at " + posIn.toString() + " in dimension " + dimensionId + " -> Destination block is not air, not replaceable or is a fluid source block.");
+            return false;
+        }
+
+        BlockSnapshot snapshot = BlockSnapshot.getBlockSnapshot(worldIn, posIn);
+        boolean canceled = ForgeEventFactory.onPlayerBlockPlace(getLastPlayer(), snapshot, EnumFacing.UP, EnumHand.MAIN_HAND).isCanceled();
+        if(canceled) snapshot.restore(true, false);
+        return !canceled;
     }
 
     /**
      * Teleports the block to the given location
      */
-    protected void teleportBlock(Location from, Location to, boolean moveTileEntities)
+    protected void teleportBlock(Location from, Location to)
     {
-        if(doTeleporterAction(from, to, moveTileEntities, true) && SRConfig.debugTeleportMessages)
+        if(doTeleporterAction(from, to, true, true) && SRConfig.debugTeleportMessages)
             StructuralRelocation.LOGGER.info("Successfully teleported block from " + from.toString() + " to " + to.toString());
     }
 
@@ -176,21 +178,13 @@ public abstract class AbstractTileTeleporter extends TileEntity
      */
     protected void copyBlock(Location from, Location to)
     {
-        copyBlock(from, to, true);
-    }
-
-    /**
-     * Copy the block to the given location
-     */
-    protected void copyBlock(Location from, Location to, boolean copyTileEntities)
-    {
-        if(doTeleporterAction(from, to, copyTileEntities, false) && SRConfig.debugTeleportMessages)
+        if(doTeleporterAction(from, to, true, false) && SRConfig.debugTeleportMessages)
             StructuralRelocation.LOGGER.info("Successfully copied block from " + from.toString() + " to " + to.toString() + " in dimension " + to.dimensionId);
     }
 
     private boolean doTeleporterAction(Location from, Location to, boolean handleTileEntities, boolean removeBlocks)
     {
-        if(removeBlocks ? !canTeleportBlock(from) : !canCopyBlock(from)) return false;
+        if(!checkSource(from, removeBlocks)) return false;
         IBlockState state = from.getBlockState();
         TileEntity te = from.getTE();
         //If not handling tile entities, and this block has one, then don't do anything to it
