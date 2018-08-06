@@ -32,7 +32,7 @@ public class StructuralRelocation
         @Override
         public ItemStack getTabIconItem()
         {
-            return new ItemStack(Items.ENDER_PEARL);
+            return new ItemStack(SRBlocks.areaTeleporter);
         }
     };
 

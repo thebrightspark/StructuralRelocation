@@ -122,7 +122,7 @@ public abstract class AbstractTileTeleporter extends TileEntity
         }
 
         //Fire BreakEvent if teleporting
-        if(!copy && !MinecraftForge.EVENT_BUS.post(new BlockEvent.BreakEvent(worldIn, posIn, state, getLastPlayer())))
+        if(!copy && MinecraftForge.EVENT_BUS.post(new BlockEvent.BreakEvent(worldIn, posIn, state, getLastPlayer())))
         {
             if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport block " + blockName + " at " + pos.toString() + " -> BreakEvent cancelled.");
             return false;
@@ -142,13 +142,13 @@ public abstract class AbstractTileTeleporter extends TileEntity
         if(!worldIn.isBlockModifiable(getLastPlayer(), posIn))
         {
             if(SRConfig.debugTeleportMessages)
-                StructuralRelocation.LOGGER.info("Can not teleport block " + blockName + " at " + posIn.toString() + " in dimension " + dimensionId + " -> No permission to modify destination.");
+                StructuralRelocation.LOGGER.info("Can not teleport to " + blockName + " at " + posIn.toString() + " in dimension " + dimensionId + " -> No permission to modify destination.");
             return false;
         }
         if((!worldIn.isAirBlock(posIn) && !worldIn.getBlockState(posIn).getBlock().isReplaceable(worldIn, posIn)) || isFluidSourceBlock(worldIn, posIn))
         {
             if(SRConfig.debugTeleportMessages)
-                StructuralRelocation.LOGGER.info("Can not teleport block " + blockName + " at " + posIn.toString() + " in dimension " + dimensionId + " -> Destination block is not air, not replaceable or is a fluid source block.");
+                StructuralRelocation.LOGGER.info("Can not teleport to " + blockName + " at " + posIn.toString() + " in dimension " + dimensionId + " -> Destination block is not air, not replaceable or is a fluid source block.");
             return false;
         }
 

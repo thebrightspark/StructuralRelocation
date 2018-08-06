@@ -133,12 +133,14 @@ public class ItemSelector extends ItemBasic
     {
         StructuralRelocation.LOGGER.info("onItemUseFirst -> " + (world.isRemote ? "Client" : "Server"));
 
+        /*
         if(StructuralRelocation.IS_DEV && world.isRemote && player instanceof EntityPlayerSP)
         {
             //Send a packet to process this on the server, because MC won't do it if I return anything other than PASS in a dev environment
             StructuralRelocation.LOGGER.info("Sending packet to server");
             ((EntityPlayerSP) player).connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(pos, side, hand, hitX, hitY, hitZ));
         }
+        */
 
         ItemStack stack = player.getHeldItem(hand);
         TileEntity te = world.getTileEntity(pos);
