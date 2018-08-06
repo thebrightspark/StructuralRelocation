@@ -234,7 +234,7 @@ public class GuiTeleporter extends GuiContainer
 
     protected void drawText()
     {
-        fontRenderer.drawString(I18n.format(teleporter.getBlockType().getUnlocalizedName() + ".name"), 8, 6, textColour);
+        fontRenderer.drawString(I18n.format(teleporter.getBlockType().getTranslationKey() + ".name"), 8, 6, textColour);
         fontRenderer.drawString(I18n.format("container.inventory"), 8, 82, textColour);
 
         //TODO: Draw any extra text

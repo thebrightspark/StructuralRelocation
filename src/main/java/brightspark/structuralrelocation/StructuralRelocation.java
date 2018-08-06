@@ -4,7 +4,6 @@ import brightspark.structuralrelocation.handler.GuiHandler;
 import brightspark.structuralrelocation.init.SRBlocks;
 import brightspark.structuralrelocation.util.CommonUtils;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.fml.common.Mod;
@@ -30,7 +29,7 @@ public class StructuralRelocation
     public static final CreativeTabs SR_TAB = new CreativeTabs(MOD_ID)
     {
         @Override
-        public ItemStack getTabIconItem()
+        public ItemStack createIcon()
         {
             return new ItemStack(SRBlocks.areaTeleporter);
         }

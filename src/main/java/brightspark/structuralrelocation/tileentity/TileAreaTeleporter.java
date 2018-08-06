@@ -114,7 +114,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
                     player.sendMessage(new TextComponentString("Target area is not clear!\n" +
                             "Position 1: " + destinationStart.toString() + "\n" +
                             "Position 2: " + destinationEnd.toString() + "\n" +
-                            "Found block ").appendSibling(new TextComponentTranslation(targetDim.getBlockState(checkPos).getBlock().getUnlocalizedName() + ".name"))
+                            "Found block ").appendSibling(new TextComponentTranslation(targetDim.getBlockState(checkPos).getBlock().getTranslationKey() + ".name"))
                             .appendText(" at " + checkPos.toString()));
                 }
                 //Update client teleporter so the Debugger item can be used

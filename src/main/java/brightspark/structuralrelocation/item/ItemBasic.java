@@ -7,7 +7,7 @@ public class ItemBasic extends Item
 {
     public ItemBasic(String name)
     {
-        setUnlocalizedName(name);
+        setTranslationKey(name);
         setRegistryName(name);
         setCreativeTab(StructuralRelocation.SR_TAB);
     }

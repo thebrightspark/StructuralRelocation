@@ -9,7 +9,7 @@ public class BlockBasic extends Block
     public BlockBasic(String name, Material mat)
     {
         super(mat);
-        setUnlocalizedName(name);
+        setTranslationKey(name);
         setRegistryName(name);
         setCreativeTab(StructuralRelocation.SR_TAB);
         setHardness(2f);

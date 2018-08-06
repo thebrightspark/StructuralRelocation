@@ -16,8 +16,8 @@ import java.util.List;
 
 public class SRBlocks
 {
-    public static List<Block> BLOCKS = new ArrayList<Block>();
-    public static List<ItemBlock> ITEM_BLOCKS = new ArrayList<ItemBlock>();
+    public static List<Block> BLOCKS = new ArrayList<>();
+    public static List<ItemBlock> ITEM_BLOCKS = new ArrayList<>();
 
     public static BlockSingleTeleporter singleTeleporter;
     public static BlockAreaTeleporter areaTeleporter;
@@ -31,7 +31,7 @@ public class SRBlocks
 
     public static void regTE(Class<? extends TileEntity> teClass, Block block)
     {
-        GameRegistry.registerTileEntity(teClass, block.getRegistryName().getResourcePath());
+        GameRegistry.registerTileEntity(teClass, block.getRegistryName());
     }
 
     public static void regBlocks()
