@@ -6,6 +6,7 @@ import brightspark.structuralrelocation.LocationArea;
 import brightspark.structuralrelocation.StructuralRelocation;
 import brightspark.structuralrelocation.message.MessageUpdateClientTeleporterObstruction;
 import brightspark.structuralrelocation.util.CommonUtils;
+import brightspark.structuralrelocation.util.LocCheckResult;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ITickable;
@@ -100,31 +101,43 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         BlockPos destinationEnd = destinationStart.add(toMove.getRelativeEndPoint());
 
         //Check that the target area is completely clear
+        EntityPlayer player = getLastPlayer();
         WorldServer targetDim = world.getMinecraftServer().getWorld(target.dimensionId);
         Iterator<BlockPos> positions = BlockPos.getAllInBox(destinationStart, destinationEnd).iterator();
         while(positions.hasNext())
         {
             BlockPos checkPos = positions.next();
-            if(!checkDestination(new Location(targetDim, checkPos)))
+            switch(checkDestination(new Location(targetDim, checkPos)))
             {
-                lastBlockInTheWay = checkPos;
-                EntityPlayer player = getLastPlayer();
-                if(player != null)
-                {
-                    player.sendMessage(new TextComponentString("Target area is not clear!\n" +
-                            "Position 1: " + destinationStart.toString() + "\n" +
-                            "Position 2: " + destinationEnd.toString() + "\n" +
-                            "Found block ").appendSibling(new TextComponentTranslation(targetDim.getBlockState(checkPos).getBlock().getTranslationKey() + ".name"))
-                            .appendText(" at " + checkPos.toString()));
-                }
-                //Update client teleporter so the Debugger item can be used
-                CommonUtils.NETWORK.sendToAll(new MessageUpdateClientTeleporterObstruction(pos, checkPos));
-                if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport. Destination area contains an obstruction at " + checkPos.toString() + " in dimension " + target.dimensionId);
-                return false;
+                case PASS:
+                    lastBlockInTheWay = checkPos;
+                    if(player != null)
+                    {
+                        player.sendMessage(new TextComponentString("Target area is not clear!\n" +
+                                "Position 1: " + destinationStart.toString() + "\n" +
+                                "Position 2: " + destinationEnd.toString() + "\n" +
+                                "Found block ").appendSibling(new TextComponentTranslation(targetDim.getBlockState(checkPos).getBlock().getTranslationKey() + ".name"))
+                                .appendText(" at " + checkPos.toString()));
+                    }
+                    //Update client teleporter so the Debugger item can be used
+                    CommonUtils.NETWORK.sendToAll(new MessageUpdateClientTeleporterObstruction(pos, checkPos));
+                    if(SRConfig.debugTeleportMessages)
+                        StructuralRelocation.LOGGER.info("Can not teleport. Destination area contains an obstruction at " + checkPos.toString() + " in dimension " + target.dimensionId);
+                    return false;
+                case WAIT:
+                    if(player != null)
+                    {
+                        player.sendMessage(new TextComponentString("Target area is not all loaded!\n" +
+                                "Position 1: " + destinationStart.toString() + "\n" +
+                                "Position 2: " + destinationEnd.toString() + "\n" +
+                                "Found block position not loaded: " + checkPos.toString()));
+                    }
+                    if(SRConfig.debugTeleportMessages)
+                        StructuralRelocation.LOGGER.info("Can not teleport. Destination area contains an unloaded chunk at block pos " + checkPos.toString() + " in dimension " + target.dimensionId);
+                    return false;
             }
         }
 
-        if(lastBlockInTheWay != null) CommonUtils.NETWORK.sendToAll(new MessageUpdateClientTeleporterObstruction(pos, null));
         lastBlockInTheWay = null;
 
         //Start an area teleport
@@ -160,10 +173,37 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Teleportation stopped.");
     }
 
+    private void nextBlockPos()
+    {
+        //Get the next block to teleport
+        BlockPos nextPos = curBlock.east();
+
+        //If reached the max for X, then go back to min X and add 1 to Z
+        if(nextPos.getX() > targetRelMax.getX())
+            nextPos = new BlockPos(0, nextPos.getY(), nextPos.south().getZ());
+
+        //If reached the max for Z, then go back to min Z and add 1 to Y
+        if(nextPos.getZ() > targetRelMax.getZ())
+            nextPos = new BlockPos(nextPos.getX(), nextPos.up().getY(), 0);
+
+        //If reached the max for Y, then finished!
+        if(nextPos.getY() > targetRelMax.getY())
+            nextPos = null;
+
+        curBlock = nextPos == null ? null : new BlockPos(nextPos);
+    }
+
     @Override
     public void update()
     {
         if(world.isRemote || curBlock == null) return;
+
+        //If waiting for a chunk to load, then do nothing
+        if(waitTicks > 0)
+        {
+            waitTicks--;
+            return;
+        }
 
         Location from = new Location(world, toMoveMin.add(curBlock));
         Location to = new Location(target.world, target.position.add(curBlock));
@@ -179,36 +219,26 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
 
         checkedEnergy = false;
 
-        //Teleport the block
-        if(isCopying)
-            copyBlock(from, to);
-        else
-            teleportBlock(from, to);
-
-        do
+        //Skip air and unbreakable blocks
+        while(curBlock != null && checkSource(from, isCopying) == LocCheckResult.PASS)
         {
-            //Get the next block to teleport
-            BlockPos nextPos = curBlock.east();
-
-            //If reached the max for X, then go back to min X and add 1 to Z
-            if(nextPos.getX() > targetRelMax.getX())
-                nextPos = new BlockPos(0, nextPos.getY(), nextPos.south().getZ());
-
-            //If reached the max for Z, then go back to min Z and add 1 to Y
-            if(nextPos.getZ() > targetRelMax.getZ())
-                nextPos = new BlockPos(nextPos.getX(), nextPos.up().getY(), 0);
-
-            //If reached the max for Y, then finished!
-            if(nextPos.getY() > targetRelMax.getY())
-                nextPos = null;
-
-            curBlock = nextPos == null ? null : new BlockPos(nextPos);
+            nextBlockPos();
             from.position = curBlock == null ? null : toMoveMin.add(curBlock);
         }
-        //Skip air and unbreakable blocks
-        while(curBlock != null && !checkSource(from, isCopying));
 
-        if(curBlock == null && SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Area " + (isCopying ? "copying" : "teleportation") + " complete.");
+        if(curBlock != null)
+        {
+            //Teleport the block
+            if(isCopying)
+                copyBlock(from, to);
+            else
+                teleportBlock(from, to);
+            //If not waiting for an unloaded chunk, then go to next pos
+            if(waitTicks <= 0)
+                nextBlockPos();
+        }
+        else if(SRConfig.debugTeleportMessages)
+            StructuralRelocation.LOGGER.info("Area " + (isCopying ? "copying" : "teleportation") + " complete.");
 
         markDirty();
     }
