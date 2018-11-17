@@ -1,7 +1,7 @@
 package brightspark.structuralrelocation.tileentity;
 
-import brightspark.structuralrelocation.SRConfig;
 import brightspark.structuralrelocation.Location;
+import brightspark.structuralrelocation.SRConfig;
 import brightspark.structuralrelocation.StructuralRelocation;
 import brightspark.structuralrelocation.util.LocCheckResult;
 import net.minecraft.entity.player.EntityPlayer;
@@ -50,13 +50,25 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
                 StructuralRelocation.LOGGER.info("Can not teleport - no target set");
             return false;
         }
-        return handleCheckResult(checkDestination(target));
+        return handleCheckResult(checkSource(toTeleport, isCopying)) && handleCheckResult(checkDestination(target));
     }
 
     @Override
     protected boolean handleCheckResult(LocCheckResult result)
     {
         return result == LocCheckResult.SUCCESS;
+    }
+
+    @Override
+    public Location getFromLoc()
+    {
+        return toTeleport;
+    }
+
+    @Override
+    public Location getToLoc()
+    {
+        return target;
     }
 
     @Override

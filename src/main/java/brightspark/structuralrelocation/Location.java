@@ -103,6 +103,6 @@ public class Location implements INBTSerializable<NBTTagCompound>
     {
         return MoreObjects.toStringHelper(this)
                 .add("dim", dimensionId)
-                .add("pos", position.toString()).toString();
+                .add("pos", position).toString();
     }
 }

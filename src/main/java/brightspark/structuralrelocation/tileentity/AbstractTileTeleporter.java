@@ -1,10 +1,11 @@
 package brightspark.structuralrelocation.tileentity;
 
-import brightspark.structuralrelocation.SRConfig;
 import brightspark.structuralrelocation.Location;
+import brightspark.structuralrelocation.SRConfig;
 import brightspark.structuralrelocation.SREnergyStorage;
 import brightspark.structuralrelocation.StructuralRelocation;
 import brightspark.structuralrelocation.util.LocCheckResult;
+import brightspark.structuralrelocation.util.TeleporterStatus;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.state.IBlockState;
@@ -90,6 +91,26 @@ public abstract class AbstractTileTeleporter extends TileEntity
     public boolean hasPowerChanged(boolean powered)
     {
         return powered != isPowered;
+    }
+
+    public boolean isWaiting()
+    {
+        return waitTicks > 0;
+    }
+
+    public abstract Location getFromLoc();
+
+    public abstract Location getToLoc();
+
+    public TeleporterStatus getStatus()
+    {
+        if(getFromLoc() == null || getToLoc() == null)
+            return TeleporterStatus.TARGETS;
+        if(!hasEnoughEnergy())
+            return TeleporterStatus.ENERGY;
+        if(isWaiting())
+            return TeleporterStatus.WAITING;
+        return TeleporterStatus.ON;
     }
 
     /**

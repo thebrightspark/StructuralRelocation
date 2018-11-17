@@ -11,13 +11,13 @@ import net.minecraftforge.common.util.INBTSerializable;
 public class LocationArea implements INBTSerializable<NBTTagCompound>
 {
     public int dimensionId;
-    public BlockPos pos1, pos2;
+    private BlockPos min, max;
 
-    public LocationArea(int dimensionId, BlockPos position1, BlockPos position2)
+    public LocationArea(int dimensionId, BlockPos pos1, BlockPos pos2)
     {
         this.dimensionId = dimensionId;
-        this.pos1 = new BlockPos(position1);
-        this.pos2 = new BlockPos(position2);
+        min = new BlockPos(Math.min(pos1.getX(), pos2.getX()), Math.min(pos1.getY(), pos2.getY()), Math.min(pos1.getZ(), pos2.getZ()));
+        max = new BlockPos(Math.max(pos1.getX(), pos2.getX()), Math.max(pos1.getY(), pos2.getY()), Math.max(pos1.getZ(), pos2.getZ()));
     }
 
     public LocationArea(NBTTagCompound nbt)
@@ -25,26 +25,19 @@ public class LocationArea implements INBTSerializable<NBTTagCompound>
         deserializeNBT(nbt);
     }
 
-    /**
-     * Gets the position where the X, Y and Z are at their smallest within the area.
-     */
-    public BlockPos getStartingPoint()
+    public int getDimensionId()
     {
-        int x = Math.min(pos1.getX(), pos2.getX());
-        int y = Math.min(pos1.getY(), pos2.getY());
-        int z = Math.min(pos1.getZ(), pos2.getZ());
-        return new BlockPos(x, y, z);
+        return dimensionId;
     }
 
-    /**
-     * Gets the position where the X, Y and Z are at their largest within the area.
-     */
-    public BlockPos getEndPoint()
+    public BlockPos getMin()
     {
-        int x = Math.max(pos1.getX(), pos2.getX());
-        int y = Math.max(pos1.getY(), pos2.getY());
-        int z = Math.max(pos1.getZ(), pos2.getZ());
-        return new BlockPos(x, y, z);
+        return min;
+    }
+
+    public BlockPos getMax()
+    {
+        return max;
     }
 
     /**
@@ -53,7 +46,7 @@ public class LocationArea implements INBTSerializable<NBTTagCompound>
      */
     public BlockPos getRelativeEndPoint()
     {
-        return getEndPoint().subtract(getStartingPoint());
+        return getMax().subtract(getMin());
     }
 
     /**
@@ -61,16 +54,14 @@ public class LocationArea implements INBTSerializable<NBTTagCompound>
      */
     public int getSize(EnumFacing.Axis axis)
     {
-        BlockPos minPos = getStartingPoint();
-        BlockPos maxPos = getEndPoint();
         switch(axis)
         {
             case X:
-                return maxPos.getX() - minPos.getX() + 1;
+                return max.getX() - min.getX() + 1;
             case Y:
-                return maxPos.getY() - minPos.getY() + 1;
+                return max.getY() - min.getY() + 1;
             case Z:
-                return maxPos.getZ() - minPos.getZ() + 1;
+                return max.getZ() - min.getZ() + 1;
             default:
                 StructuralRelocation.LOGGER.error("Unhandled axis!?");
                 return -1;
@@ -95,7 +86,7 @@ public class LocationArea implements INBTSerializable<NBTTagCompound>
 
     public boolean isEqual(LocationArea area)
     {
-        return area != null && area.dimensionId == dimensionId && area.pos1.equals(pos1) && area.pos2.equals(pos2);
+        return area != null && area.dimensionId == dimensionId && area.min.equals(min) && area.max.equals(max);
     }
 
     /**
@@ -104,7 +95,7 @@ public class LocationArea implements INBTSerializable<NBTTagCompound>
     public boolean isAdjacent(BlockPos pos)
     {
         Vec3d posVec = new Vec3d((double) pos.getX() + 0.5d, (double) pos.getY() + 0.5d, (double) pos.getZ() + 0.5d);
-        AxisAlignedBB areaBox = new AxisAlignedBB(getStartingPoint(), getEndPoint().add(1, 1, 1));
+        AxisAlignedBB areaBox = new AxisAlignedBB(getMin(), getMax().add(1, 1, 1));
         AxisAlignedBB areaBoxBigger = areaBox.grow(1d);
         boolean isOutsideArea = !areaBox.contains(posVec);
         boolean isOnEdgeOfArea = areaBoxBigger.contains(posVec);
@@ -116,8 +107,8 @@ public class LocationArea implements INBTSerializable<NBTTagCompound>
     {
         NBTTagCompound tag = new NBTTagCompound();
         tag.setInteger("dimension", dimensionId);
-        tag.setLong("position1", pos1.toLong());
-        tag.setLong("position2", pos2.toLong());
+        tag.setLong("position1", min.toLong());
+        tag.setLong("position2", max.toLong());
         return tag;
     }
 
@@ -125,8 +116,8 @@ public class LocationArea implements INBTSerializable<NBTTagCompound>
     public void deserializeNBT(NBTTagCompound tag)
     {
         dimensionId = tag.getInteger("dimension");
-        pos1 = BlockPos.fromLong(tag.getLong("position1"));
-        pos2 = BlockPos.fromLong(tag.getLong("position2"));
+        min = BlockPos.fromLong(tag.getLong("position1"));
+        max = BlockPos.fromLong(tag.getLong("position2"));
     }
 
     @Override
@@ -134,7 +125,7 @@ public class LocationArea implements INBTSerializable<NBTTagCompound>
     {
         return MoreObjects.toStringHelper(this)
                 .add("dim", dimensionId)
-                .add("pos1", pos1.toString())
-                .add("pos2", pos2.toString()).toString();
+                .add("pos1", min.toString())
+                .add("pos2", max.toString()).toString();
     }
 }
