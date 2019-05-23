@@ -41,13 +41,13 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
         if(target == null)
         {
             if(SRConfig.debugTeleportMessages)
-                StructuralRelocation.LOGGER.info("Can not teleport - not enough power.");
+                StructuralRelocation.LOGGER.info("Can not teleport - no target set");
             return false;
         }
         if(!hasEnoughEnergy(toTeleport, target))
         {
             if(SRConfig.debugTeleportMessages)
-                StructuralRelocation.LOGGER.info("Can not teleport - no target set");
+                StructuralRelocation.LOGGER.info("Can not teleport - not enough power.");
             return false;
         }
         return handleCheckResult(checkSource(toTeleport, isCopying)) && handleCheckResult(checkDestination(target));
