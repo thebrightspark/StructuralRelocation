@@ -161,7 +161,7 @@ public class ClientEventHandler
                     LocationArea area = ItemSelector.getArea(heldItem);
                     if(area == null || area.dimensionId != mc.player.dimension) return;
                     //Render selected area
-                    renderBox(area.getStartingPoint(), area.getEndPoint().add(1, 1, 1), event.getPartialTicks());
+                    renderBox(area.getMin(), area.getMax().add(1, 1, 1), event.getPartialTicks());
 
                 }
                 else

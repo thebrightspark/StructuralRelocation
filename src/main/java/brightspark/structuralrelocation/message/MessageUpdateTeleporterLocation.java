@@ -55,8 +55,8 @@ public class MessageUpdateTeleporterLocation implements IMessage
         if(isArea)
         {
             buf.writeInt(area.dimensionId);
-            buf.writeLong(area.pos1.toLong());
-            buf.writeLong(area.pos2.toLong());
+            buf.writeLong(area.getMin().toLong());
+            buf.writeLong(area.getMax().toLong());
         }
         else
         {

@@ -1,8 +1,9 @@
 package brightspark.structuralrelocation.tileentity;
 
-import brightspark.structuralrelocation.SRConfig;
 import brightspark.structuralrelocation.Location;
+import brightspark.structuralrelocation.SRConfig;
 import brightspark.structuralrelocation.StructuralRelocation;
+import brightspark.structuralrelocation.util.LocCheckResult;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -37,12 +38,37 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
     private boolean doPreActionChecks()
     {
         if(world.isRemote) return false;
-        if(target == null || !hasEnoughEnergy(toTeleport, target) || !checkDestination(target))
+        if(target == null)
         {
-            if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport. Either no target set or not enough power.");
+            if(SRConfig.debugTeleportMessages)
+                StructuralRelocation.LOGGER.info("Can not teleport - not enough power.");
             return false;
         }
-        return true;
+        if(!hasEnoughEnergy(toTeleport, target))
+        {
+            if(SRConfig.debugTeleportMessages)
+                StructuralRelocation.LOGGER.info("Can not teleport - no target set");
+            return false;
+        }
+        return handleCheckResult(checkSource(toTeleport, isCopying)) && handleCheckResult(checkDestination(target));
+    }
+
+    @Override
+    protected boolean handleCheckResult(LocCheckResult result)
+    {
+        return result == LocCheckResult.SUCCESS;
+    }
+
+    @Override
+    public Location getFromLoc()
+    {
+        return toTeleport;
+    }
+
+    @Override
+    public Location getToLoc()
+    {
+        return target;
     }
 
     @Override

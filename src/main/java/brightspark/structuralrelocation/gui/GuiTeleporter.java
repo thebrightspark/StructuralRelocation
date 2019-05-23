@@ -8,6 +8,7 @@ import brightspark.structuralrelocation.tileentity.AbstractTileTeleporter;
 import brightspark.structuralrelocation.tileentity.TileAreaTeleporter;
 import brightspark.structuralrelocation.tileentity.TileSingleTeleporter;
 import brightspark.structuralrelocation.util.CommonUtils;
+import brightspark.structuralrelocation.util.TeleporterStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
@@ -21,7 +22,6 @@ import net.minecraft.util.text.TextFormatting;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,14 +74,14 @@ public class GuiTeleporter extends GuiContainer
          */
         if(isAreaTeleporter)
         {
-            iconList.add(iconTarget = new Icon(46, 23, 0, EnumIconBackground.OFF));
-            iconList.add(iconArea = new Icon(87, 23, 1, EnumIconBackground.OFF));
-            iconList.add(iconStatus = new Icon(128, 23, 2, EnumIconBackground.OFF));
+            iconList.add(iconTarget = new Icon(46, 23, 0, TeleporterStatus.OFF));
+            iconList.add(iconArea = new Icon(87, 23, 1, TeleporterStatus.OFF));
+            iconList.add(iconStatus = new Icon(128, 23, 2, TeleporterStatus.OFF));
         }
         else
         {
-            iconList.add(iconTarget = new Icon(66, 23, 0, EnumIconBackground.OFF));
-            iconList.add(iconStatus = new Icon(108, 23, 2, EnumIconBackground.OFF));
+            iconList.add(iconTarget = new Icon(66, 23, 0, TeleporterStatus.OFF));
+            iconList.add(iconStatus = new Icon(108, 23, 2, TeleporterStatus.OFF));
         }
     }
 
@@ -94,7 +94,7 @@ public class GuiTeleporter extends GuiContainer
             //Target Icon
             Location target = areaTE.getTarget();
             List<String> tooltipTarget = new ArrayList<>();
-            tooltipTarget.add(TextFormatting.GOLD + "Destination Target:");
+            tooltipTarget.add(TextFormatting.GOLD + "Target:");
             if(target == null)
                 tooltipTarget.add(TextFormatting.RED + "Target not set!");
             else
@@ -103,7 +103,7 @@ public class GuiTeleporter extends GuiContainer
                 tooltipTarget.add(TextFormatting.YELLOW + "Position: " + CommonUtils.posToString(target.position));
             }
             iconTarget.setTooltip(tooltipTarget);
-            iconTarget.setBackground(target == null ? EnumIconBackground.OFF : EnumIconBackground.ON);
+            iconTarget.setStatus(target == null ? TeleporterStatus.OFF : TeleporterStatus.ON);
 
             //Area Icon
             LocationArea area = areaTE.getAreaToMove();
@@ -114,30 +114,38 @@ public class GuiTeleporter extends GuiContainer
             else
             {
                 tooltipArea.add(TextFormatting.YELLOW + "Dimension ID: " + TextFormatting.GRAY + area.dimensionId);
-                tooltipArea.add(TextFormatting.YELLOW + "Position 1: " + CommonUtils.posToString(area.pos1));
-                tooltipArea.add(TextFormatting.YELLOW + "Position 2: " + CommonUtils.posToString(area.pos2));
+                tooltipArea.add(TextFormatting.YELLOW + "Min Position: " + CommonUtils.posToString(area.getMin()));
+                tooltipArea.add(TextFormatting.YELLOW + "Max Position: " + CommonUtils.posToString(area.getMax()));
                 tooltipArea.add(TextFormatting.YELLOW + "Size: " + TextFormatting.GRAY + area.getSizeString());
             }
             iconArea.setTooltip(tooltipArea);
-            iconArea.setBackground(areaTE.getAreaToMove() == null ? EnumIconBackground.OFF : EnumIconBackground.ON);
+            iconArea.setStatus(areaTE.getAreaToMove() == null ? TeleporterStatus.OFF : TeleporterStatus.ON);
 
             //Status Icon
-            EnumIconBackground status = areaTE.isActive() ? areaTE.hasEnoughEnergy() ? EnumIconBackground.ON : EnumIconBackground.RED : EnumIconBackground.OFF;
+            TeleporterStatus status = areaTE.getStatus();
             List<String> tooltipStatus = new ArrayList<>();
             tooltipStatus.add(TextFormatting.GOLD + "Status:");
+            String text = "";
             switch(status)
             {
                 case OFF:
-                    tooltipStatus.add(TextFormatting.BLUE + "Inactive");
+                    text = "Inactive";
                     break;
                 case ON:
-                    tooltipStatus.add(TextFormatting.GREEN + "Active");
+                    text = "Active";
                     break;
-                case RED:
-                    tooltipStatus.add(TextFormatting.RED + "Out of energy!");
+                case ENERGY:
+                    text = "Out of energy!";
+                    break;
+                case WAITING:
+                    text = "Waiting for a chunk to load!";
+                    break;
+                case TARGETS:
+                    text = "Targets are not set!";
             }
+            tooltipStatus.add(status.applyColour(text));
             iconStatus.setTooltip(tooltipStatus);
-            iconStatus.setBackground(status);
+            iconStatus.setStatus(status);
         }
         else
         {
@@ -155,23 +163,27 @@ public class GuiTeleporter extends GuiContainer
                 tooltipTarget.add(TextFormatting.YELLOW + "Block Position: " + CommonUtils.posToString(target.position));
             }
             iconTarget.setTooltip(tooltipTarget);
-            iconTarget.setBackground(singleTE.getTarget() == null ? EnumIconBackground.OFF : EnumIconBackground.ON);
+            iconTarget.setStatus(singleTE.getTarget() == null ? TeleporterStatus.OFF : TeleporterStatus.ON);
 
             //Status Icon
-            boolean hasEnoughEnergy = singleTE.hasEnoughEnergy();
+            TeleporterStatus status = singleTE.getStatus();
             List<String> tooltipStatus = new ArrayList<>();
             tooltipStatus.add(TextFormatting.GOLD + "Status:");
-            if(target == null)
-                tooltipStatus.add(TextFormatting.RED + "Target not set!");
-            else
+            String text = "";
+            switch(status)
             {
-                if(hasEnoughEnergy)
-                    tooltipStatus.add(TextFormatting.BLUE + "Inactive");
-                else
-                    tooltipStatus.add(TextFormatting.RED + "Out of energy!");
+                case ON:
+                    text = "Active";
+                    break;
+                case ENERGY:
+                    text = "Out of energy!";
+                    break;
+                case TARGETS:
+                    text = "Targets are not set!";
             }
+            tooltipStatus.add(status.applyColour(text));
             iconStatus.setTooltip(tooltipStatus);
-            iconStatus.setBackground(target != null && hasEnoughEnergy ? EnumIconBackground.OFF : EnumIconBackground.RED);
+            iconStatus.setStatus(status);
         }
     }
 
@@ -179,7 +191,7 @@ public class GuiTeleporter extends GuiContainer
     {
         boolean isActive = isAreaTeleporter && ((TileAreaTeleporter) teleporter).isActive();
         boolean hasEnergy = teleporter.hasEnoughEnergy();
-        boolean hasTargets = iconTarget.getBackground() == EnumIconBackground.ON && (!isAreaTeleporter || iconArea.getBackground() == EnumIconBackground.ON);
+        boolean hasTargets = iconTarget.getStatus() == TeleporterStatus.ON && (!isAreaTeleporter || iconArea.getStatus() == TeleporterStatus.ON);
         for(GuiButton button : buttonList)
         {
             switch(button.id)
@@ -259,7 +271,7 @@ public class GuiTeleporter extends GuiContainer
      * Called by the controls from the buttonList when activated. (Mouse pressed for buttons)
      */
     @Override
-    protected void actionPerformed(GuiButton button) throws IOException
+    protected void actionPerformed(GuiButton button)
     {
         CommonUtils.NETWORK.sendToServer(new MessageGuiTeleport(button.id, mc.player, teleporter.getPos()));
     }
@@ -324,20 +336,13 @@ public class GuiTeleporter extends GuiContainer
         }
     }
 
-    public enum EnumIconBackground
-    {
-        ON,
-        OFF,
-        RED
-    }
-
     public class Icon extends Gui
     {
         private int posX, posY, iconId;
         private int size = 20;
         private int iconX = 186;
         private int iconY = 30;
-        private EnumIconBackground bg = EnumIconBackground.ON;
+        private TeleporterStatus status = TeleporterStatus.ON;
         private List<String> tooltip = new ArrayList<String>();
 
         public Icon(int posX, int posY, int iconId)
@@ -347,20 +352,20 @@ public class GuiTeleporter extends GuiContainer
             this.iconId = iconId;
         }
 
-        public Icon(int posX, int posY, int iconId, EnumIconBackground background)
+        public Icon(int posX, int posY, int iconId, TeleporterStatus status)
         {
             this(posX, posY, iconId);
-            bg = background;
+            this.status = status;
         }
 
-        public void setBackground(EnumIconBackground background)
+        public void setStatus(TeleporterStatus background)
         {
-            bg = background;
+            status = background;
         }
 
-        public EnumIconBackground getBackground()
+        public TeleporterStatus getStatus()
         {
-            return bg;
+            return status;
         }
 
         public void setTooltip(List<String> text)
@@ -372,7 +377,7 @@ public class GuiTeleporter extends GuiContainer
         {
             mc.getTextureManager().bindTexture(guiImage);
             //Draw background
-            drawTexturedModalRect(posX, posY, iconX + (bg.ordinal() * size), iconY, size, size);
+            drawTexturedModalRect(posX, posY, iconX + (status.getIconId() * size), iconY, size, size);
             //Draw icon
             drawTexturedModalRect(posX, posY, iconX + (iconId * size), iconY + size, size, size);
         }

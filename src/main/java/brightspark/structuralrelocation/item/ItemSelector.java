@@ -269,11 +269,9 @@ public class ItemSelector extends ItemBasic
                     else
                     {
                         //Area set
-                        BlockPos pos1 = area.pos1;
-                        BlockPos pos2 = area.pos2;
                         tooltip.add(TextFormatting.GOLD + "Dimension ID: " + TextFormatting.GRAY + area.dimensionId);
-                        tooltip.add(TextFormatting.GOLD + "Position 1: " + CommonUtils.posToString(pos1));
-                        tooltip.add(TextFormatting.GOLD + "Position 2: " + CommonUtils.posToString(pos2));
+                        tooltip.add(TextFormatting.GOLD + "Min Position: " + CommonUtils.posToString(area.getMin()));
+                        tooltip.add(TextFormatting.GOLD + "Max Position: " + CommonUtils.posToString(area.getMax()));
                         tooltip.add(TextFormatting.GOLD + "Size: " + TextFormatting.GRAY + area.getSizeString());
                     }
                 }
@@ -282,8 +280,8 @@ public class ItemSelector extends ItemBasic
                     //Only the first position is set
                     BlockPos pos = areaLoc1.position;
                     tooltip.add(TextFormatting.GOLD + "Dimension ID: " + TextFormatting.GRAY + areaLoc1.dimensionId);
-                    tooltip.add(TextFormatting.GOLD + "Area Pos 1: " + CommonUtils.posToString(pos));
-                    tooltip.add(TextFormatting.GOLD + "Area Pos 2: " + TextFormatting.GRAY + "Not yet set");
+                    tooltip.add(TextFormatting.GOLD + "Min Position: " + CommonUtils.posToString(pos));
+                    tooltip.add(TextFormatting.GOLD + "Max Position: " + TextFormatting.GRAY + "Not yet set");
                 }
         }
     }

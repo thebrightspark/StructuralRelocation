@@ -1,11 +1,10 @@
 package brightspark.structuralrelocation.tileentity;
 
-import brightspark.structuralrelocation.SRConfig;
-import brightspark.structuralrelocation.Location;
-import brightspark.structuralrelocation.LocationArea;
-import brightspark.structuralrelocation.StructuralRelocation;
+import brightspark.structuralrelocation.*;
 import brightspark.structuralrelocation.message.MessageUpdateClientTeleporterObstruction;
 import brightspark.structuralrelocation.util.CommonUtils;
+import brightspark.structuralrelocation.util.LocCheckResult;
+import brightspark.structuralrelocation.util.TeleporterStatus;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ITickable;
@@ -20,9 +19,8 @@ import java.util.Iterator;
 
 public class TileAreaTeleporter extends AbstractTileTeleporter implements ITickable
 {
-    private LocationArea toMove;
+    private IterableArea areaToMove = new IterableArea();
     private Location target;
-    private BlockPos curBlock, targetRelMax, toMoveMin;
     public BlockPos lastBlockInTheWay;
 
     private boolean checkedEnergy = false;
@@ -30,13 +28,13 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
     public void setAreaToMove(LocationArea area)
     {
         if(area == null) return;
-        toMove = area;
+        areaToMove.setArea(area);
         markDirty();
     }
 
     public LocationArea getAreaToMove()
     {
-        return toMove;
+        return areaToMove.getArea();
     }
 
     public void setTarget(Location target)
@@ -57,29 +55,31 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
     @SideOnly(Side.CLIENT)
     public void setCurBlock(BlockPos pos)
     {
-        curBlock = pos;
+        areaToMove.setCurPos(pos);
         markDirty();
     }
 
     public BlockPos getCurBlock()
     {
-        return curBlock == null ? null : curBlock.add(toMoveMin);
+        return areaToMove.getCurPos();
     }
 
+    @Override
     public Location getFromLoc()
     {
-        BlockPos posFrom = toMoveMin != null ? toMoveMin.add(curBlock) : toMove != null ? toMove.getStartingPoint() : null;
+        BlockPos posFrom = getCurBlock() == null ? areaToMove.getArea() == null ? null : areaToMove.getArea().getMin() : getCurBlock();
         return posFrom == null ? null : new Location(world, posFrom);
     }
 
+    @Override
     public Location getToLoc()
     {
-        return curBlock == null ? target : target == null ? null : new Location(target.dimensionId, target.position.add(curBlock));
+        return areaToMove.getCurPos() == null ? target : target == null ? null : new Location(target.dimensionId, target.position.add(areaToMove.getCurPosOffset()));
     }
 
     public boolean isActive()
     {
-        return curBlock != null;
+        return areaToMove.getCurPos() != null;
     }
 
     public boolean hasEnoughEnergy()
@@ -87,50 +87,67 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         return hasEnoughEnergy(getFromLoc(), getToLoc());
     }
 
+    @Override
+    public TeleporterStatus getStatus()
+    {
+        return isActive() ? super.getStatus() : TeleporterStatus.OFF;
+    }
+
     private boolean doPreActionChecks()
     {
         if(world.isRemote) return false;
-        if(toMove == null || target == null || curBlock != null)
+        if(target == null || areaToMove.getArea() == null)
         {
-            if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport. Either no target set or no area set.");
+            if(SRConfig.debugTeleportMessages)
+                StructuralRelocation.LOGGER.info("Can not teleport. Either no target set or no area set.");
             return false;
         }
 
         BlockPos destinationStart = target.position;
-        BlockPos destinationEnd = destinationStart.add(toMove.getRelativeEndPoint());
+        BlockPos destinationEnd = destinationStart.add(areaToMove.getArea().getRelativeEndPoint());
 
         //Check that the target area is completely clear
+        EntityPlayer player = getLastPlayer();
         WorldServer targetDim = world.getMinecraftServer().getWorld(target.dimensionId);
         Iterator<BlockPos> positions = BlockPos.getAllInBox(destinationStart, destinationEnd).iterator();
         while(positions.hasNext())
         {
             BlockPos checkPos = positions.next();
-            if(!checkDestination(new Location(targetDim, checkPos)))
+            switch(checkDestination(new Location(targetDim, checkPos)))
             {
-                lastBlockInTheWay = checkPos;
-                EntityPlayer player = getLastPlayer();
-                if(player != null)
-                {
-                    player.sendMessage(new TextComponentString("Target area is not clear!\n" +
-                            "Position 1: " + destinationStart.toString() + "\n" +
-                            "Position 2: " + destinationEnd.toString() + "\n" +
-                            "Found block ").appendSibling(new TextComponentTranslation(targetDim.getBlockState(checkPos).getBlock().getTranslationKey() + ".name"))
-                            .appendText(" at " + checkPos.toString()));
-                }
-                //Update client teleporter so the Debugger item can be used
-                CommonUtils.NETWORK.sendToAll(new MessageUpdateClientTeleporterObstruction(pos, checkPos));
-                if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Can not teleport. Destination area contains an obstruction at " + checkPos.toString() + " in dimension " + target.dimensionId);
-                return false;
+                case PASS:
+                    lastBlockInTheWay = checkPos;
+                    if(player != null)
+                    {
+                        player.sendMessage(new TextComponentString("Target area is not clear!\n" +
+                                "Position 1: " + destinationStart.toString() + "\n" +
+                                "Position 2: " + destinationEnd.toString() + "\n" +
+                                "Found block ").appendSibling(new TextComponentTranslation(targetDim.getBlockState(checkPos).getBlock().getTranslationKey() + ".name"))
+                                .appendText(" at " + checkPos.toString()));
+                    }
+                    //Update client teleporter so the Debugger item can be used
+                    CommonUtils.NETWORK.sendToAll(new MessageUpdateClientTeleporterObstruction(pos, checkPos));
+                    if(SRConfig.debugTeleportMessages)
+                        StructuralRelocation.LOGGER.info("Can not teleport. Destination area contains an obstruction at " + checkPos.toString() + " in dimension " + target.dimensionId);
+                    return false;
+                case WAIT:
+                    if(player != null)
+                    {
+                        player.sendMessage(new TextComponentString("Target area is not all loaded!\n" +
+                                "Position 1: " + destinationStart.toString() + "\n" +
+                                "Position 2: " + destinationEnd.toString() + "\n" +
+                                "Found block position not loaded: " + checkPos.toString()));
+                    }
+                    if(SRConfig.debugTeleportMessages)
+                        StructuralRelocation.LOGGER.info("Can not teleport. Destination area contains an unloaded chunk at block pos " + checkPos.toString() + " in dimension " + target.dimensionId);
+                    return false;
             }
         }
 
-        if(lastBlockInTheWay != null) CommonUtils.NETWORK.sendToAll(new MessageUpdateClientTeleporterObstruction(pos, null));
         lastBlockInTheWay = null;
 
         //Start an area teleport
-        curBlock = new BlockPos(0, 0, 0);
-        targetRelMax = toMove.getRelativeEndPoint();
-        toMoveMin = toMove.getStartingPoint();
+        areaToMove.resetCurPos();
         return true;
     }
 
@@ -155,7 +172,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
      */
     public void stop()
     {
-        curBlock = null;
+        areaToMove.setCurPos(null);
         markDirty();
         if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Teleportation stopped.");
     }
@@ -163,10 +180,17 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
     @Override
     public void update()
     {
-        if(world.isRemote || curBlock == null) return;
+        if(world.isRemote || areaToMove.getCurPos() == null || target == null) return;
 
-        Location from = new Location(world, toMoveMin.add(curBlock));
-        Location to = new Location(target.world, target.position.add(curBlock));
+        //If waiting for a chunk to load, then do nothing
+        if(waitTicks > 0)
+        {
+            waitTicks--;
+            return;
+        }
+
+        Location from = new Location(world, areaToMove.getCurPos());
+        Location to = new Location(target.world, target.position.add(areaToMove.getCurPosOffset()));
         if(!hasEnoughEnergy(from, to))
         {
             if(SRConfig.debugTeleportMessages && !checkedEnergy)
@@ -179,36 +203,26 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
 
         checkedEnergy = false;
 
-        //Teleport the block
-        if(isCopying)
-            copyBlock(from, to);
-        else
-            teleportBlock(from, to);
-
-        do
-        {
-            //Get the next block to teleport
-            BlockPos nextPos = curBlock.east();
-
-            //If reached the max for X, then go back to min X and add 1 to Z
-            if(nextPos.getX() > targetRelMax.getX())
-                nextPos = new BlockPos(0, nextPos.getY(), nextPos.south().getZ());
-
-            //If reached the max for Z, then go back to min Z and add 1 to Y
-            if(nextPos.getZ() > targetRelMax.getZ())
-                nextPos = new BlockPos(nextPos.getX(), nextPos.up().getY(), 0);
-
-            //If reached the max for Y, then finished!
-            if(nextPos.getY() > targetRelMax.getY())
-                nextPos = null;
-
-            curBlock = nextPos == null ? null : new BlockPos(nextPos);
-            from.position = curBlock == null ? null : toMoveMin.add(curBlock);
-        }
         //Skip air and unbreakable blocks
-        while(curBlock != null && !checkSource(from, isCopying));
+        while(areaToMove.getCurPos() != null && checkSource(from, isCopying) == LocCheckResult.PASS)
+        {
+            areaToMove.next();
+            from.position = areaToMove.getCurPos();
+        }
 
-        if(curBlock == null && SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Area " + (isCopying ? "copying" : "teleportation") + " complete.");
+        if(areaToMove.getCurPos() != null)
+        {
+            //Teleport the block
+            if(isCopying)
+                copyBlock(from, to);
+            else
+                teleportBlock(from, to);
+            //If not waiting for an unloaded chunk, then go to next pos
+            if(waitTicks <= 0)
+                areaToMove.next();
+        }
+        else if(SRConfig.debugTeleportMessages)
+            StructuralRelocation.LOGGER.info("Area " + (isCopying ? "copying" : "teleportation") + " complete.");
 
         markDirty();
     }
@@ -221,11 +235,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         //Read target
         if(nbt.hasKey("target")) target = new Location(nbt.getCompoundTag("target"));
         //Read area
-        if(nbt.hasKey("area")) toMove = new LocationArea(nbt.getCompoundTag("area"));
-        //Read other data
-        if(nbt.hasKey("curBlock")) curBlock = BlockPos.fromLong(nbt.getLong("curBlock"));
-        if(nbt.hasKey("targetRelMax")) targetRelMax = BlockPos.fromLong(nbt.getLong("targetRelMax"));
-        if(nbt.hasKey("toMoveMin")) toMoveMin = BlockPos.fromLong(nbt.getLong("toMoveMin"));
+        areaToMove = new IterableArea(nbt.getCompoundTag("area"));
     }
 
     @Override
@@ -234,11 +244,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         //Write target
         if(target != null) nbt.setTag("target", target.serializeNBT());
         //Write area
-        if(toMove != null) nbt.setTag("area", toMove.serializeNBT());
-        //Write other data
-        if(curBlock != null) nbt.setLong("curBlock", curBlock.toLong());
-        if(targetRelMax != null) nbt.setLong("targetRelMax", targetRelMax.toLong());
-        if(toMoveMin != null) nbt.setLong("toMoveMin", toMoveMin.toLong());
+        nbt.setTag("area", areaToMove.serializeNBT());
 
         return super.writeToNBT(nbt);
     }
