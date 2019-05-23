@@ -37,10 +37,10 @@ public class CommonUtils
      */
     public static String addDigitGrouping(String number)
     {
-        String output = number;
+        StringBuilder sb = new StringBuilder(number);
         for(int i = number.length() - 3; i > 0; i -= 3)
-            output = output.substring(0, i) + "," + output.substring(i);
-        return output;
+            sb.insert(i, ',');
+        return sb.toString();
     }
 
     /**
