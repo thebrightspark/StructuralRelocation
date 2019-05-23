@@ -1,6 +1,10 @@
 package brightspark.structuralrelocation;
 
 import net.minecraftforge.common.config.Config;
+import net.minecraftforge.common.config.ConfigManager;
+import net.minecraftforge.fml.client.event.ConfigChangedEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 @Config(modid = StructuralRelocation.MOD_ID)
 @Config.LangKey(StructuralRelocation.MOD_ID + "config.title")
@@ -36,4 +40,15 @@ public class SRConfig
 
     @Config.Comment("The colour of the boxes which are rendered by the Selector and Debugger")
     public static String boxRenderColour = "0xFF0000";
+
+    @Mod.EventBusSubscriber(modid = StructuralRelocation.MOD_ID)
+    public static class Handler
+    {
+        @SubscribeEvent
+        public static void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event)
+        {
+            if(event.getModID().equalsIgnoreCase(StructuralRelocation.MOD_ID))
+                ConfigManager.sync(StructuralRelocation.MOD_ID, Config.Type.INSTANCE);
+        }
+    }
 }
