@@ -10,13 +10,11 @@ import brightspark.structuralrelocation.tileentity.TileAreaTeleporter;
 import brightspark.structuralrelocation.tileentity.TileSingleTeleporter;
 import brightspark.structuralrelocation.util.CommonUtils;
 import net.minecraft.block.Block;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagInt;
-import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
@@ -131,9 +129,8 @@ public class ItemSelector extends ItemBasic
     @Override
     public EnumActionResult onItemUseFirst(EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ, EnumHand hand)
     {
-        StructuralRelocation.LOGGER.info("onItemUseFirst -> " + (world.isRemote ? "Client" : "Server"));
-
         /*
+        StructuralRelocation.LOGGER.info("onItemUseFirst -> " + (world.isRemote ? "Client" : "Server"));
         if(StructuralRelocation.IS_DEV && world.isRemote && player instanceof EntityPlayerSP)
         {
             //Send a packet to process this on the server, because MC won't do it if I return anything other than PASS in a dev environment
@@ -147,7 +144,7 @@ public class ItemSelector extends ItemBasic
         boolean hasTarget = getTarget(stack) != null;
         boolean hasArea = getArea(stack) != null;
         boolean flag = false;
-        if((hasTarget || hasArea) && te != null && te instanceof AbstractTileTeleporter)
+        if((hasTarget || hasArea) && te instanceof AbstractTileTeleporter)
         {
             //Set target/area in block
             switch(getMode(stack))

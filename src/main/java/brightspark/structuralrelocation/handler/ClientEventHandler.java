@@ -1,8 +1,8 @@
 package brightspark.structuralrelocation.handler;
 
-import brightspark.structuralrelocation.SRConfig;
 import brightspark.structuralrelocation.Location;
 import brightspark.structuralrelocation.LocationArea;
+import brightspark.structuralrelocation.SRConfig;
 import brightspark.structuralrelocation.StructuralRelocation;
 import brightspark.structuralrelocation.init.SRItems;
 import brightspark.structuralrelocation.item.ItemDebugger;
@@ -25,7 +25,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import java.awt.*;
 import java.util.Iterator;
 
-@Mod.EventBusSubscriber(Side.CLIENT)
+@Mod.EventBusSubscriber(modid = StructuralRelocation.MOD_ID, value = Side.CLIENT)
 public class ClientEventHandler
 {
     private static Minecraft mc = Minecraft.getMinecraft();

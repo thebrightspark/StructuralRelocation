@@ -1,5 +1,6 @@
 package brightspark.structuralrelocation.handler;
 
+import brightspark.structuralrelocation.StructuralRelocation;
 import brightspark.structuralrelocation.init.SRBlocks;
 import brightspark.structuralrelocation.init.SRItems;
 import net.minecraft.block.Block;
@@ -9,7 +10,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.registries.IForgeRegistry;
 
-@Mod.EventBusSubscriber
+@Mod.EventBusSubscriber(modid = StructuralRelocation.MOD_ID)
 public class RegistrationHandler
 {
     @SubscribeEvent
