@@ -298,6 +298,9 @@ public abstract class AbstractTileTeleporter extends TileEntity
             //Remove the old block and tile entity
             from.removeTE();
             from.setBlockToAir();
+
+            //TODO: Spawn particle for animation
+
         }
         useEnergy(from, to);
         return true;
