@@ -1,41 +1,54 @@
 package brightspark.structuralrelocation.particle;
 
+import brightspark.structuralrelocation.util.RedrawableTesselator;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.block.model.IBakedModel;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
 import net.minecraft.init.SoundEvents;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 
 public class ParticleBlock extends Particle
 {
 	private boolean inverse;
-	private IBlockState state;
-	private IBakedModel model;
 	private float rotX, rotY, rotZ;
+	private RedrawableTesselator redrawableTesselator;
 
 	public ParticleBlock(World worldIn, BlockPos pos, IBlockState state, boolean inverse)
 	{
-		super(worldIn, pos.getX(), pos.getY(), pos.getZ());
-		particleMaxAge = 20;
+		super(worldIn, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
+		particleMaxAge = 10;
 		this.inverse = inverse;
-		this.state = state;
-		model = Minecraft.getMinecraft().getBlockRendererDispatcher().getModelForState(state);
 		rotX = randRotation();
 		rotY = randRotation();
 		rotZ = randRotation();
 		Color colour = Color.getHSBColor(rand.nextFloat(), randFloat(0.3f), randFloat(0.7f));
 		float[] rgb = colour.getRGBColorComponents(null);
 		this.setRBGColorF(rgb[0], rgb[1], rgb[2]);
+
+		//Construct buffer to use for rendering
+		IBakedModel model = Minecraft.getMinecraft().getBlockRendererDispatcher().getModelForState(state);
+		int bufferSize = 0;
+		for(EnumFacing facing : EnumFacing.values())
+			bufferSize += model.getQuads(state, facing, 0L).size();
+		bufferSize += model.getQuads(state, null, 0L).size();
+		redrawableTesselator = new RedrawableTesselator(bufferSize * 4 * 28, bufferBuilder -> {
+			bufferBuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
+			Minecraft.getMinecraft().getBlockRendererDispatcher().getBlockModelRenderer()
+				.renderModel(world, model, state, BlockPos.ORIGIN, bufferBuilder, false);
+			bufferBuilder.finishDrawing();
+		});
 	}
 
 	private float randFloat(float min)
@@ -45,12 +58,18 @@ public class ParticleBlock extends Particle
 
 	private float randRotation()
 	{
-		return rand.nextFloat() * 0.5F;
+		return rand.nextFloat() - 0.5F;
 	}
 
 	private float randSpeed()
 	{
 		return (rand.nextFloat() - 0.5F) * 0.2F;
+	}
+
+	@Override
+	public int getFXLayer()
+	{
+		return 3;
 	}
 
 	@Override
@@ -70,20 +89,37 @@ public class ParticleBlock extends Particle
 	@Override
 	public void renderParticle(BufferBuilder buffer, Entity entityIn, float partialTicks, float rotationX, float rotationZ, float rotationYZ, float rotationXY, float rotationXZ)
 	{
-		GlStateManager.translate(posX, posY, posZ);
-		float agePct = (float) particleAge / (float) particleMaxAge;
-		GlStateManager.rotate(agePct, rotX, rotY, rotZ);
+		GlStateManager.pushMatrix();
+		GlStateManager.enableAlpha();
+		GlStateManager.enableBlend();
+		GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+		GlStateManager.disableFog();
+
+		float agePct = ((float) particleAge + partialTicks) / (float) particleMaxAge;
 		float agePctInv = 1 - agePct;
-//		GlStateManager.color(1F, 1F, 1F, agePctInv);
-		GlStateManager.scale(agePctInv, agePctInv, agePctInv);
-		GlStateManager.translate(-posX, -posY, -posZ);
+		double translationX = posX - entityIn.posX;
+		double translationY = posY - entityIn.posY;
+		double translationZ = posZ - entityIn.posZ;
+		GlStateManager.translate(translationX, translationY, translationZ);
+		if(inverse)
+		{
+			GlStateManager.rotate(agePctInv * 200F, rotX, rotY, rotZ);
+			GlStateManager.scale(agePct, agePct, agePct);
+			//GlStateManager.color(1F, 1F, 1F, agePct);
+		}
+		else
+		{
+			GlStateManager.rotate(agePct * 200F, rotX, rotY, rotZ);
+			GlStateManager.scale(agePctInv, agePctInv, agePctInv);
+			//GlStateManager.color(1F, 1F, 1F, agePctInv);
+		}
+		GlStateManager.translate(-0.5F, -0.5F, -0.5F);
 
-//		Minecraft.getMinecraft().getBlockRendererDispatcher().getBlockModelRenderer()
-//			.renderModel(world, model, state, new BlockPos(posX, posY, posZ), buffer, false);
+		redrawableTesselator.draw();
 
-		RenderGlobal.renderFilledBox(posX, posY, posZ, posX + 1, posY + 1, posZ + 1, getRedColorF(), getGreenColorF(), getBlueColorF(), agePctInv);
-
-		GlStateManager.color(1F, 1F, 1F, 1F);
-		GlStateManager.scale(1F, 1F, 1F);
+		GlStateManager.popMatrix();
+		GlStateManager.enableFog();
+		GlStateManager.disableBlend();
+		GlStateManager.disableAlpha();
 	}
 }

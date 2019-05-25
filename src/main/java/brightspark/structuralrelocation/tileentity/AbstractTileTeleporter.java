@@ -4,6 +4,8 @@ import brightspark.structuralrelocation.Location;
 import brightspark.structuralrelocation.SRConfig;
 import brightspark.structuralrelocation.SREnergyStorage;
 import brightspark.structuralrelocation.StructuralRelocation;
+import brightspark.structuralrelocation.message.MessageSpawnParticleBlock;
+import brightspark.structuralrelocation.util.CommonUtils;
 import brightspark.structuralrelocation.util.LocCheckResult;
 import brightspark.structuralrelocation.util.TeleporterStatus;
 import net.minecraft.block.Block;
@@ -25,6 +27,7 @@ import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.fluids.IFluidBlock;
+import net.minecraftforge.fml.common.network.NetworkRegistry;
 
 import java.util.UUID;
 
@@ -299,8 +302,10 @@ public abstract class AbstractTileTeleporter extends TileEntity
             from.removeTE();
             from.setBlockToAir();
 
-            //TODO: Spawn particle for animation
-
+            //Spawn particle for animation
+            BlockPos fromPos = from.position;
+            CommonUtils.NETWORK.sendToAllAround(new MessageSpawnParticleBlock(fromPos, false),
+                new NetworkRegistry.TargetPoint(world.provider.getDimension(), fromPos.getX(), fromPos.getY(), fromPos.getZ(), 30D));
         }
         useEnergy(from, to);
         return true;
@@ -374,9 +379,9 @@ public abstract class AbstractTileTeleporter extends TileEntity
         //Read energy
         energy.deserializeNBT(nbt.getCompoundTag("energy"));
         //Read last player
-        if(nbt.hasKey("playerMost")) lastPlayerUUID = nbt.getUniqueId("player");
+        if(nbt.hasUniqueId("player")) lastPlayerUUID = nbt.getUniqueId("player");
         //Read placed player
-        if(nbt.hasKey("placedMost")) placedPlayerUUID = nbt.getUniqueId("placed");
+        if(nbt.hasUniqueId("placed")) placedPlayerUUID = nbt.getUniqueId("placed");
         //Read if copying
         isCopying = nbt.getBoolean("isCopying");
         //Read if powered
@@ -392,7 +397,6 @@ public abstract class AbstractTileTeleporter extends TileEntity
         if(lastPlayerUUID != null) nbt.setUniqueId("player", lastPlayerUUID);
         //Write placed player
         if(placedPlayerUUID != null) nbt.setUniqueId("placed", placedPlayerUUID);
-
         //Write if copying
         nbt.setBoolean("isCopying", isCopying);
         //Write if powered
