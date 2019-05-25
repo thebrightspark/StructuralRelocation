@@ -4,6 +4,7 @@ import brightspark.structuralrelocation.Location;
 import brightspark.structuralrelocation.SRConfig;
 import brightspark.structuralrelocation.SREnergyStorage;
 import brightspark.structuralrelocation.StructuralRelocation;
+import brightspark.structuralrelocation.handler.PostponedBlockSettingHandler;
 import brightspark.structuralrelocation.message.MessageSpawnParticleBlock;
 import brightspark.structuralrelocation.util.CommonUtils;
 import brightspark.structuralrelocation.util.LocCheckResult;
@@ -269,7 +270,6 @@ public abstract class AbstractTileTeleporter extends TileEntity
     private boolean doTeleporterAction(Location from, Location to, boolean handleTileEntities, boolean removeBlocks)
     {
         if(!handleCheckResult(checkSource(from, removeBlocks))) return false;
-        IBlockState state = from.getBlockState();
         TileEntity te = from.getTE();
         //If not handling tile entities, and this block has one, then don't do anything to it
         if(!handleTileEntities && te != null) return false;
@@ -293,15 +293,21 @@ public abstract class AbstractTileTeleporter extends TileEntity
             }
         }
 
-        //Set the new block and tile entity
-        to.setBlockState(state);
-        if(newTe != null) to.setTE(newTe);
+        //Spawn particle for destination animation
+        BlockPos toPos = to.position;
+        IBlockState state = from.getBlockState();
+        CommonUtils.NETWORK.sendToAllAround(new MessageSpawnParticleBlock(true, toPos, state),
+            new NetworkRegistry.TargetPoint(to.dimensionId, toPos.getX(), toPos.getY(), toPos.getZ(), 30D));
+
+        //Schedule block state to be set
+        PostponedBlockSettingHandler.addBlockToSet(to, state,  newTe);
+
         if(removeBlocks)
         {
-	        //Spawn particle for animation
+	        //Spawn particle for source animation
 	        BlockPos fromPos = from.position;
-	        CommonUtils.NETWORK.sendToAllAround(new MessageSpawnParticleBlock(fromPos, false),
-		        new NetworkRegistry.TargetPoint(world.provider.getDimension(), fromPos.getX(), fromPos.getY(), fromPos.getZ(), 30D));
+	        CommonUtils.NETWORK.sendToAllAround(new MessageSpawnParticleBlock(false, fromPos, state),
+		        new NetworkRegistry.TargetPoint(from.dimensionId, fromPos.getX(), fromPos.getY(), fromPos.getZ(), 30D));
 
             //Remove the old block and tile entity
             from.removeTE();

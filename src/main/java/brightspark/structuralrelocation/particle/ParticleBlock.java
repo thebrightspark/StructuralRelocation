@@ -109,13 +109,11 @@ public class ParticleBlock extends Particle
 		{
 			GlStateManager.rotate(ageProgressInv * 200F, rotX, rotY, rotZ);
 			GlStateManager.scale(ageProgress, ageProgress, ageProgress);
-			//GlStateManager.color(1F, 1F, 1F, ageProgress);
 		}
 		else
 		{
 			GlStateManager.rotate(ageProgress * 200F, rotX, rotY, rotZ);
 			GlStateManager.scale(ageProgressInv, ageProgressInv, ageProgressInv);
-			//GlStateManager.color(1F, 1F, 1F, ageProgressInv);
 		}
 		GlStateManager.translate(-0.5F, -0.5F, -0.5F);
 
