@@ -96,9 +96,9 @@ public class ParticleBlock extends Particle
 		double agePct = ((double) particleAge + partialTicks) / (double) particleMaxAge;
 		float ageProgressInv = (float) Math.sin((agePct * (Math.PI / 2)) + (Math.PI / 2));
 		float ageProgress = 1 - ageProgressInv;
-		double translationX = posX - entityIn.posX;
-		double translationY = posY - entityIn.posY;
-		double translationZ = posZ - entityIn.posZ;
+		double translationX = posX - (entityIn.prevPosX + (entityIn.posX - entityIn.prevPosX) * (double) partialTicks);
+		double translationY = posY - (entityIn.prevPosY + (entityIn.posY - entityIn.prevPosY) * (double) partialTicks);
+		double translationZ = posZ - (entityIn.prevPosZ + (entityIn.posZ - entityIn.prevPosZ) * (double) partialTicks);
 		GlStateManager.translate(translationX, translationY, translationZ);
 		if(inverse)
 		{
