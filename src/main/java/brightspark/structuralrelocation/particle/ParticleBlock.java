@@ -11,7 +11,6 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -35,7 +34,7 @@ public class ParticleBlock extends Particle
 		rotZ = randRotation();
 		Color colour = Color.getHSBColor(rand.nextFloat(), randFloat(0.3f), randFloat(0.7f));
 		float[] rgb = colour.getRGBColorComponents(null);
-		this.setRBGColorF(rgb[0], rgb[1], rgb[2]);
+		setRBGColorF(rgb[0], rgb[1], rgb[2]);
 
 		//Construct buffer to use for rendering
 		IBakedModel model = Minecraft.getMinecraft().getBlockRendererDispatcher().getModelForState(state);
@@ -61,11 +60,6 @@ public class ParticleBlock extends Particle
 		return rand.nextFloat() * 2 - 0.5F;
 	}
 
-	private float randSpeed()
-	{
-		return (rand.nextFloat() - 0.5F) * 0.2F;
-	}
-
 	@Override
 	public int getFXLayer()
 	{
@@ -76,13 +70,14 @@ public class ParticleBlock extends Particle
 	public void onUpdate()
 	{
 		if(particleAge++ >= particleMaxAge)
-			this.setExpired();
+			setExpired();
 
 		if(particleAge == particleMaxAge)
 		{
 			world.playSound(null, posX, posY, posZ, SoundEvents.ENTITY_ENDERMEN_TELEPORT, SoundCategory.BLOCKS, 0.75F, rand.nextFloat() + 0.5F);
-			for(int i = 0; i < rand.nextInt(10) + 5; i++)
-				world.spawnParticle(EnumParticleTypes.PORTAL, posX, posY, posZ, randSpeed(), randSpeed(), randSpeed());
+			if(!inverse)
+				for(int i = 0; i < rand.nextInt(10) + 5; i++)
+					Minecraft.getMinecraft().effectRenderer.addEffect(new ParticleBlockTeleport(world, posX, posY, posZ));
 		}
 	}
 
