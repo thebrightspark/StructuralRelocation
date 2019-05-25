@@ -298,14 +298,14 @@ public abstract class AbstractTileTeleporter extends TileEntity
         if(newTe != null) to.setTE(newTe);
         if(removeBlocks)
         {
+	        //Spawn particle for animation
+	        BlockPos fromPos = from.position;
+	        CommonUtils.NETWORK.sendToAllAround(new MessageSpawnParticleBlock(fromPos, false),
+		        new NetworkRegistry.TargetPoint(world.provider.getDimension(), fromPos.getX(), fromPos.getY(), fromPos.getZ(), 30D));
+
             //Remove the old block and tile entity
             from.removeTE();
             from.setBlockToAir();
-
-            //Spawn particle for animation
-            BlockPos fromPos = from.position;
-            CommonUtils.NETWORK.sendToAllAround(new MessageSpawnParticleBlock(fromPos, false),
-                new NetworkRegistry.TargetPoint(world.provider.getDimension(), fromPos.getX(), fromPos.getY(), fromPos.getZ(), 30D));
         }
         useEnergy(from, to);
         return true;

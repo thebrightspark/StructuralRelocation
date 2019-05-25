@@ -58,7 +58,7 @@ public class ParticleBlock extends Particle
 
 	private float randRotation()
 	{
-		return rand.nextFloat() - 0.5F;
+		return rand.nextFloat() * 2 - 0.5F;
 	}
 
 	private float randSpeed()
@@ -89,29 +89,33 @@ public class ParticleBlock extends Particle
 	@Override
 	public void renderParticle(BufferBuilder buffer, Entity entityIn, float partialTicks, float rotationX, float rotationZ, float rotationYZ, float rotationXY, float rotationXZ)
 	{
+		if(particleAge > particleMaxAge || (particleAge == particleMaxAge && partialTicks > 0F))
+			return;
+
 		GlStateManager.pushMatrix();
 		GlStateManager.enableAlpha();
 		GlStateManager.enableBlend();
 		GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
 		GlStateManager.disableFog();
 
-		float agePct = ((float) particleAge + partialTicks) / (float) particleMaxAge;
-		float agePctInv = 1 - agePct;
+		double agePct = ((double) particleAge + partialTicks) / (double) particleMaxAge;
+		float ageProgressInv = (float) Math.sin((agePct * (Math.PI / 2)) + (Math.PI / 2));
+		float ageProgress = 1 - ageProgressInv;
 		double translationX = posX - entityIn.posX;
 		double translationY = posY - entityIn.posY;
 		double translationZ = posZ - entityIn.posZ;
 		GlStateManager.translate(translationX, translationY, translationZ);
 		if(inverse)
 		{
-			GlStateManager.rotate(agePctInv * 200F, rotX, rotY, rotZ);
-			GlStateManager.scale(agePct, agePct, agePct);
-			//GlStateManager.color(1F, 1F, 1F, agePct);
+			GlStateManager.rotate(ageProgressInv * 200F, rotX, rotY, rotZ);
+			GlStateManager.scale(ageProgress, ageProgress, ageProgress);
+			//GlStateManager.color(1F, 1F, 1F, ageProgress);
 		}
 		else
 		{
-			GlStateManager.rotate(agePct * 200F, rotX, rotY, rotZ);
-			GlStateManager.scale(agePctInv, agePctInv, agePctInv);
-			//GlStateManager.color(1F, 1F, 1F, agePctInv);
+			GlStateManager.rotate(ageProgress * 200F, rotX, rotY, rotZ);
+			GlStateManager.scale(ageProgressInv, ageProgressInv, ageProgressInv);
+			//GlStateManager.color(1F, 1F, 1F, ageProgressInv);
 		}
 		GlStateManager.translate(-0.5F, -0.5F, -0.5F);
 
