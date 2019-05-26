@@ -42,12 +42,9 @@ public class ParticleBlock extends Particle
 		for(EnumFacing facing : EnumFacing.values())
 			bufferSize += model.getQuads(state, facing, 0L).size();
 		bufferSize += model.getQuads(state, null, 0L).size();
-		redrawableTesselator = new RedrawableTesselator(bufferSize * 4 * 28, bufferBuilder -> {
-			bufferBuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
-			Minecraft.getMinecraft().getBlockRendererDispatcher().getBlockModelRenderer()
-				.renderModel(world, model, state, BlockPos.ORIGIN, bufferBuilder, false);
-			bufferBuilder.finishDrawing();
-		});
+		redrawableTesselator = new RedrawableTesselator(bufferSize * 4 * 28, GL11.GL_QUADS, DefaultVertexFormats.BLOCK,
+			bufferBuilder -> Minecraft.getMinecraft().getBlockRendererDispatcher().getBlockModelRenderer()
+				.renderModel(world, model, state, BlockPos.ORIGIN, bufferBuilder, false));
 	}
 
 	private float randFloat(float min)

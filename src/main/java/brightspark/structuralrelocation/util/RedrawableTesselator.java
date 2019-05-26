@@ -13,10 +13,12 @@ public class RedrawableTesselator
 {
 	private final BufferBuilder buffer;
 
-	public RedrawableTesselator(int bufferSize, Consumer<BufferBuilder> bufferInit)
+	public RedrawableTesselator(int bufferSize, int glMode, VertexFormat format, Consumer<BufferBuilder> bufferInit)
 	{
 		buffer = new BufferBuilder(bufferSize);
+		buffer.begin(glMode, format);
 		bufferInit.accept(buffer);
+		buffer.finishDrawing();
 	}
 
 	//Copied from WorldVertexBufferUploader#draw and edited slightly

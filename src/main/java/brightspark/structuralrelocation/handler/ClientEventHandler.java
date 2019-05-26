@@ -8,10 +8,12 @@ import brightspark.structuralrelocation.init.SRItems;
 import brightspark.structuralrelocation.item.ItemDebugger;
 import brightspark.structuralrelocation.item.ItemSelector;
 import brightspark.structuralrelocation.tileentity.TileAreaTeleporter;
+import brightspark.structuralrelocation.util.RedrawableTesselator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderGlobal;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -22,6 +24,7 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
+import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 
@@ -31,6 +34,22 @@ public class ClientEventHandler
     private static Minecraft mc = Minecraft.getMinecraft();
     private static Color boxRenderColour;
     private static String prevBoxColour = null;
+
+    private static final RedrawableTesselator redrawableTargetDirs =
+        new RedrawableTesselator(13 * 4 * 28, GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR, bufferBuilder -> {
+            float alpha = 0.5F;
+            float[] colorParts = Color.BLUE.getRGBComponents(null);
+            bufferBuilder.pos(0, 0, 0).color(colorParts[0], colorParts[1], colorParts[2], alpha).endVertex();
+            bufferBuilder.pos(0, 0, 0.5D).color(colorParts[0], colorParts[1], colorParts[2], alpha).endVertex();
+
+            colorParts = Color.RED.getRGBComponents(null);
+            bufferBuilder.pos(0, 0, 0).color(colorParts[0], colorParts[1], colorParts[2], alpha).endVertex();
+            bufferBuilder.pos(0.5D, 0, 0).color(colorParts[0], colorParts[1], colorParts[2], alpha).endVertex();
+
+            colorParts = Color.GREEN.getRGBComponents(null);
+            bufferBuilder.pos(0, 0, 0).color(colorParts[0], colorParts[1], colorParts[2], alpha).endVertex();
+            bufferBuilder.pos(0, 0.5D, 0).color(colorParts[0], colorParts[1], colorParts[2], alpha).endVertex();
+        });
 
     private static Color getBoxColour()
     {
@@ -110,36 +129,62 @@ public class ClientEventHandler
         return new Vec3d(x, y, z);
     }
 
-    private static void renderBox(BlockPos pos, double partialTicks)
+    private static void preRender()
     {
-        renderBox(new AxisAlignedBB(pos).grow(0.001d), partialTicks);
+        GlStateManager.pushMatrix();
+        GlStateManager.glLineWidth(5f);
+        GlStateManager.enableAlpha();
+        GlStateManager.enableBlend();
+        GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+        GlStateManager.disableTexture2D();
+    }
+
+    private static void postRender()
+    {
+        GlStateManager.enableTexture2D();
+        GlStateManager.popMatrix();
+    }
+
+    private static void renderBox(BlockPos pos, double partialTicks, boolean fill)
+    {
+        preRender();
+        renderBox(new AxisAlignedBB(pos).grow(0.001d), partialTicks, fill);
+        if(!fill) renderTargetDirections(pos, partialTicks);
+        postRender();
     }
 
     private static void renderBox(BlockPos pos1, BlockPos pos2, double partialTicks)
     {
-        renderBox(new AxisAlignedBB(pos1, pos2).grow(0.001d), partialTicks);
+        preRender();
+        renderBox(new AxisAlignedBB(pos1, pos2).grow(0.001d), partialTicks, true);
+        postRender();
     }
 
-    private static void renderBox(AxisAlignedBB box, double partialTicks)
+    private static void renderBox(AxisAlignedBB box, double partialTicks, boolean fill)
     {
         GlStateManager.pushMatrix();
-        GlStateManager.enableAlpha();
-        GlStateManager.enableBlend();
-        GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-        GlStateManager.glLineWidth(5f);
-        GlStateManager.disableTexture2D();
         Vec3d playerPos = getActualPlayerPos(partialTicks);
         GlStateManager.translate(-playerPos.x, -playerPos.y, -playerPos.z);
         float[] rgb = getBoxColour().getRGBColorComponents(null);
-        RenderGlobal.renderFilledBox(box, rgb[0], rgb[1], rgb[2], 0.2f);
+        if(fill) RenderGlobal.renderFilledBox(box, rgb[0], rgb[1], rgb[2], 0.2f);
         RenderGlobal.drawSelectionBoundingBox(box, rgb[0], rgb[1], rgb[2], 0.4f);
-        GlStateManager.enableTexture2D();
+        GlStateManager.popMatrix();
+    }
+
+    private static void renderTargetDirections(BlockPos pos, double partialTicks)
+    {
+        GlStateManager.pushMatrix();
+        Vec3d translation = new Vec3d(pos).subtract(getActualPlayerPos(partialTicks)).add(0.5D, 0.5D, 0.5D);
+        GlStateManager.translate(translation.x, translation.y, translation.z);
+        redrawableTargetDirs.draw();
         GlStateManager.popMatrix();
     }
 
     @SubscribeEvent
     public static void renderSelection(RenderWorldLastEvent event)
     {
+        float partialTicks = event.getPartialTicks();
+
         //Get held Selector item
         ItemStack heldItem = getHeldItem(SRItems.itemSelector);
         if(heldItem != null)
@@ -151,7 +196,7 @@ public class ClientEventHandler
                 Location location = ItemSelector.getTarget(heldItem);
                 if(location == null || location.dimensionId != mc.player.dimension) return;
                 //Render single selected position
-                renderBox(location.position, event.getPartialTicks());
+                renderBox(location.position, partialTicks, false);
             }
             else
             {
@@ -161,14 +206,14 @@ public class ClientEventHandler
                     LocationArea area = ItemSelector.getArea(heldItem);
                     if(area == null || area.dimensionId != mc.player.dimension) return;
                     //Render selected area
-                    renderBox(area.getMin(), area.getMax().add(1, 1, 1), event.getPartialTicks());
+                    renderBox(area.getMin(), area.getMax().add(1, 1, 1), partialTicks);
 
                 }
                 else
                 {
                     if(areaLoc1.dimensionId != mc.player.dimension) return;
                     //Render first area location
-                    renderBox(areaLoc1.position, event.getPartialTicks());
+                    renderBox(areaLoc1.position, partialTicks, true);
                 }
             }
         }
@@ -182,7 +227,7 @@ public class ClientEventHandler
             if(location == null || location.dimensionId != mc.player.dimension) return;
             TileEntity te = mc.world.getTileEntity(location.position);
             if(te instanceof TileAreaTeleporter && ((TileAreaTeleporter) te).lastBlockInTheWay != null)
-                renderBox(((TileAreaTeleporter) te).lastBlockInTheWay, event.getPartialTicks());
+                renderBox(((TileAreaTeleporter) te).lastBlockInTheWay, partialTicks, true);
         }
     }
 }
