@@ -93,23 +93,16 @@ public class ParticleBlock extends Particle
 		GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
 		GlStateManager.disableFog();
 
-		double agePct = ((double) particleAge + partialTicks) / (double) particleMaxAge;
-		float ageProgressInv = (float) Math.sin((agePct * (Math.PI / 2)) + (Math.PI / 2));
-		float ageProgress = 1 - ageProgressInv;
 		double translationX = posX - (entityIn.prevPosX + (entityIn.posX - entityIn.prevPosX) * (double) partialTicks);
 		double translationY = posY - (entityIn.prevPosY + (entityIn.posY - entityIn.prevPosY) * (double) partialTicks);
 		double translationZ = posZ - (entityIn.prevPosZ + (entityIn.posZ - entityIn.prevPosZ) * (double) partialTicks);
 		GlStateManager.translate(translationX, translationY, translationZ);
-		if(inverse)
-		{
-			GlStateManager.rotate(ageProgressInv * 200F, rotX, rotY, rotZ);
-			GlStateManager.scale(ageProgress, ageProgress, ageProgress);
-		}
-		else
-		{
-			GlStateManager.rotate(ageProgress * 200F, rotX, rotY, rotZ);
-			GlStateManager.scale(ageProgressInv, ageProgressInv, ageProgressInv);
-		}
+
+		double agePct = ((double) particleAge + partialTicks) / (double) particleMaxAge;
+		float ageProgressInv = (float) Math.sin((agePct * (Math.PI / 2)) + (inverse ? 0 : Math.PI / 2));
+		float ageProgress = 1 - ageProgressInv;
+		GlStateManager.rotate(ageProgress * 200F, rotX, rotY, rotZ);
+		GlStateManager.scale(ageProgressInv, ageProgressInv, ageProgressInv);
 		GlStateManager.translate(-0.5F, -0.5F, -0.5F);
 
 		redrawableTesselator.draw();
