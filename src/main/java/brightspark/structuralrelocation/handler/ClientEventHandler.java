@@ -17,13 +17,13 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 
 import java.awt.*;
-import java.util.Iterator;
 
 @Mod.EventBusSubscriber(modid = StructuralRelocation.MOD_ID, value = Side.CLIENT)
 public class ClientEventHandler
@@ -49,7 +49,7 @@ public class ClientEventHandler
             }
             catch(NumberFormatException e)
             {
-                StructuralRelocation.LOGGER.error("Couldn't parse colour " + colourString + " for the config boxRenderColour as a hexadecimal value. Using default value.");
+                StructuralRelocation.LOGGER.error("Couldn't parse colour {} for the config boxRenderColour as a hexadecimal value. Using default value.", colourString);
             }
         }
         else if(colourString.contains(","))
@@ -67,15 +67,15 @@ public class ClientEventHandler
                 }
                 catch(NumberFormatException e)
                 {
-                    StructuralRelocation.LOGGER.error("Couldn't parse colour" + colourString + " for the config boxRenderColour as an RGB value. Using default value.");
+                    StructuralRelocation.LOGGER.error("Couldn't parse colour {} for the config boxRenderColour as an RGB value. Using default value.", colourString);
                 }
                 catch(IllegalArgumentException e)
                 {
-                    StructuralRelocation.LOGGER.error("Couldn't parse colour" + colourString + " for the config boxRenderColour as an RGB value - values must be between 0 and 255. Using default value.");
+                    StructuralRelocation.LOGGER.error("Couldn't parse colour {} for the config boxRenderColour as an RGB value - values must be between 0 and 255. Using default value.", colourString);
                 }
             }
             else
-                StructuralRelocation.LOGGER.error("Couldn't parse colour" + colourString + " for the config boxRenderColour as an RGB value. Using default value.");
+                StructuralRelocation.LOGGER.error("Couldn't parse colour {} for the config boxRenderColour as an RGB value. Using default value.", colourString);
         }
         else
         {
@@ -86,7 +86,7 @@ public class ClientEventHandler
             }
             catch(NumberFormatException e)
             {
-                StructuralRelocation.LOGGER.error("Couldn't parse colour " + colourString + " for the config boxRenderColour as an integer. Using default value.");
+                StructuralRelocation.LOGGER.error("Couldn't parse colour {} for the config boxRenderColour as an integer. Using default value.", colourString);
             }
         }
 
@@ -95,14 +95,19 @@ public class ClientEventHandler
 
     private static ItemStack getHeldItem(Item item)
     {
-        Iterator<ItemStack> heldItems = mc.player.getHeldEquipment().iterator();
-        while(heldItems.hasNext())
-        {
-            ItemStack held = heldItems.next();
+        for(ItemStack held : mc.player.getHeldEquipment())
             if(held != null && held.getItem().equals(item))
                 return held;
-        }
         return null;
+    }
+
+    private static Vec3d getActualPlayerPos(double partialTicks)
+    {
+        EntityPlayerSP player = mc.player;
+        double x = player.prevPosX + (player.posX - player.prevPosX) * partialTicks;
+        double y = player.prevPosY + (player.posY - player.prevPosY) * partialTicks;
+        double z = player.prevPosZ + (player.posZ - player.prevPosZ) * partialTicks;
+        return new Vec3d(x, y, z);
     }
 
     private static void renderBox(BlockPos pos, double partialTicks)
@@ -117,19 +122,14 @@ public class ClientEventHandler
 
     private static void renderBox(AxisAlignedBB box, double partialTicks)
     {
-        //Get player's actual position
-        EntityPlayerSP player = mc.player;
-        double x = player.prevPosX + (player.posX - player.prevPosX) * partialTicks;
-        double y = player.prevPosY + (player.posY - player.prevPosY) * partialTicks;
-        double z = player.prevPosZ + (player.posZ - player.prevPosZ) * partialTicks;
-        //Render the box
         GlStateManager.pushMatrix();
         GlStateManager.enableAlpha();
         GlStateManager.enableBlend();
         GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
         GlStateManager.glLineWidth(5f);
         GlStateManager.disableTexture2D();
-        GlStateManager.translate(-x, -y, -z);
+        Vec3d playerPos = getActualPlayerPos(partialTicks);
+        GlStateManager.translate(-playerPos.x, -playerPos.y, -playerPos.z);
         float[] rgb = getBoxColour().getRGBColorComponents(null);
         RenderGlobal.renderFilledBox(box, rgb[0], rgb[1], rgb[2], 0.2f);
         RenderGlobal.drawSelectionBoundingBox(box, rgb[0], rgb[1], rgb[2], 0.4f);
@@ -181,7 +181,7 @@ public class ClientEventHandler
             Location location = ItemDebugger.getTeleporterLoc(heldItem);
             if(location == null || location.dimensionId != mc.player.dimension) return;
             TileEntity te = mc.world.getTileEntity(location.position);
-            if(te != null && te instanceof TileAreaTeleporter && ((TileAreaTeleporter) te).lastBlockInTheWay != null)
+            if(te instanceof TileAreaTeleporter && ((TileAreaTeleporter) te).lastBlockInTheWay != null)
                 renderBox(((TileAreaTeleporter) te).lastBlockInTheWay, event.getPartialTicks());
         }
     }
