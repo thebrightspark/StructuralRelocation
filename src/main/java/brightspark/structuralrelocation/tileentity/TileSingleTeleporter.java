@@ -4,8 +4,9 @@ import brightspark.structuralrelocation.Location;
 import brightspark.structuralrelocation.SRConfig;
 import brightspark.structuralrelocation.StructuralRelocation;
 import brightspark.structuralrelocation.util.LocCheckResult;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+
+import java.util.UUID;
 
 public class TileSingleTeleporter extends AbstractTileTeleporter
 {
@@ -72,9 +73,9 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
     }
 
     @Override
-    public void teleport(EntityPlayer player)
+    public void teleport(UUID playerUuid)
     {
-        super.teleport(player);
+        super.teleport(playerUuid);
         if(doPreActionChecks())
         {
             teleportBlock(toTeleport, target);
@@ -83,9 +84,9 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
     }
 
     @Override
-    public void copy(EntityPlayer player)
+    public void copy(UUID playerUuid)
     {
-        super.copy(player);
+        super.copy(playerUuid);
         if(doPreActionChecks())
         {
             copyBlock(toTeleport, target);

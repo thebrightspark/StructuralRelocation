@@ -45,7 +45,7 @@ public abstract class AbstractBlockTeleporter extends AbstractBlockContainer
     {
         TileEntity te = worldIn.getTileEntity(pos);
         if(placer instanceof EntityPlayer && te instanceof AbstractTileTeleporter)
-            ((AbstractTileTeleporter) te).setPlacedPlayer((EntityPlayer) placer);
+            ((AbstractTileTeleporter) te).setPlacedPlayer(placer.getUniqueID());
     }
 
     @Override
@@ -70,7 +70,7 @@ public abstract class AbstractBlockTeleporter extends AbstractBlockContainer
             teleporter.setPowered(isPowered);
             //Only start teleportation when powered on
             if(isPowered)
-                teleporter.teleport(teleporter.getPlacedPlayer());
+                teleporter.teleport(teleporter.getPlacedPlayerUuid());
         }
     }
 }

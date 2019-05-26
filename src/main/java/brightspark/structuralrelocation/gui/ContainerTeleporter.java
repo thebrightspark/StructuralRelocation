@@ -52,7 +52,7 @@ public class ContainerTeleporter extends Container
     @Override
     public boolean canInteractWith(EntityPlayer playerIn)
     {
-        return teleporter.isUseableByPlayer(playerIn);
+        return teleporter.isUsableByPlayer(playerIn);
     }
 
     /**

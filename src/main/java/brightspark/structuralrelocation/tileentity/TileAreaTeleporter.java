@@ -16,6 +16,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.Iterator;
+import java.util.UUID;
 
 public class TileAreaTeleporter extends AbstractTileTeleporter implements ITickable
 {
@@ -152,17 +153,17 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
     }
 
     @Override
-    public void teleport(EntityPlayer player)
+    public void teleport(UUID playerUuid)
     {
-        super.teleport(player);
+        super.teleport(playerUuid);
         if(doPreActionChecks() && SRConfig.debugTeleportMessages)
             StructuralRelocation.LOGGER.info("Area teleportation successfully started.");
     }
 
     @Override
-    public void copy(EntityPlayer player)
+    public void copy(UUID playerUuid)
     {
-        super.copy(player);
+        super.copy(playerUuid);
         if(doPreActionChecks() && SRConfig.debugTeleportMessages)
             StructuralRelocation.LOGGER.info("Area copy successfully started.");
     }

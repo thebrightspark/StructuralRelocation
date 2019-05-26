@@ -80,11 +80,11 @@ public class MessageGuiTeleport implements IMessage
                     switch(message.buttonId)
                     {
                         case 0: //Teleport
-                            teleporter.teleport(player);
+                            teleporter.teleport(message.playerUUID);
                             break;
                         case 1: //Copy
                             if(player.capabilities.isCreativeMode)
-                                teleporter.copy(player);
+                                teleporter.copy(message.playerUUID);
                             else
                                 player.sendMessage(new TextComponentString("You must be in creative to copy blocks at the moment!"));
                             break;

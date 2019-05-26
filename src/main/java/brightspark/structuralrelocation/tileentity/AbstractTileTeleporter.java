@@ -23,6 +23,7 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.BlockSnapshot;
+import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.event.ForgeEventFactory;
@@ -34,8 +35,8 @@ import java.util.UUID;
 
 public abstract class AbstractTileTeleporter extends TileEntity
 {
-    private UUID lastPlayerUUID, placedPlayerUUID;
-    private EntityPlayer lastPlayer, placedPlayer;
+    private UUID lastPlayerUuid, placedPlayerUuid;
+    private EntityPlayer lastPlayer;
     /** True = copying, False = teleporting **/
     protected boolean isCopying, isPowered;
     protected int waitTicks = 0;
@@ -51,7 +52,7 @@ public abstract class AbstractTileTeleporter extends TileEntity
         energy = new SREnergyStorage(1000000, 5000, 0);
     }
 
-    public boolean isUseableByPlayer(EntityPlayer player)
+    public boolean isUsableByPlayer(EntityPlayer player)
     {
         return world.getTileEntity(pos) == this && player.getDistanceSq((double)pos.getX() + 0.5D, (double)pos.getY() + 0.5D, (double)pos.getZ() + 0.5D) <= 64.0D;
     }
@@ -61,30 +62,39 @@ public abstract class AbstractTileTeleporter extends TileEntity
      */
     public EntityPlayer getLastPlayer()
     {
-        if(lastPlayer != null) return lastPlayer;
-        if(lastPlayerUUID != null) return lastPlayer = world.getPlayerEntityByUUID(lastPlayerUUID);
-        if(world instanceof WorldServer) return lastPlayer = FakePlayerFactory.getMinecraft((WorldServer) world);
+        if(lastPlayer instanceof FakePlayer)
+        {
+            if(lastPlayerUuid != null)
+            {
+                EntityPlayer player = world.getPlayerEntityByUUID(lastPlayerUuid);
+                if(player != null) lastPlayer = player;
+            }
+            return lastPlayer;
+        }
+        else
+        {
+            if(lastPlayer != null) return lastPlayer;
+            if(lastPlayerUuid != null) lastPlayer = world.getPlayerEntityByUUID(lastPlayerUuid);
+            if(lastPlayer != null) return lastPlayer;
+            if(world instanceof WorldServer) return lastPlayer = FakePlayerFactory.getMinecraft((WorldServer) world);
+        }
         return null;
     }
 
-    public void setLastPlayer(EntityPlayer player)
+    public void setLastPlayer(UUID playerUuid)
     {
-        lastPlayer = player;
-        lastPlayerUUID = player.getUniqueID();
+        lastPlayer = null;
+        lastPlayerUuid = playerUuid;
     }
 
-    public EntityPlayer getPlacedPlayer()
+    public UUID getPlacedPlayerUuid()
     {
-        if(placedPlayer != null) return placedPlayer;
-        if(placedPlayerUUID != null) return placedPlayer = world.getPlayerEntityByUUID(placedPlayerUUID);
-        if(world instanceof WorldServer) return placedPlayer = FakePlayerFactory.getMinecraft((WorldServer) world);
-        return null;
+        return placedPlayerUuid;
     }
 
-    public void setPlacedPlayer(EntityPlayer player)
+    public void setPlacedPlayer(UUID playerUuid)
     {
-        placedPlayer = player;
-        placedPlayerUUID = player.getUniqueID();
+        placedPlayerUuid = playerUuid;
     }
 
     public void setPowered(boolean powered)
@@ -121,9 +131,9 @@ public abstract class AbstractTileTeleporter extends TileEntity
      * Tries to start the teleporting
      * Player argument is the one who activated the block, and is used to send messages to
      */
-    public void teleport(EntityPlayer player)
+    public void teleport(UUID playerUuid)
     {
-        setLastPlayer(player);
+        setLastPlayer(playerUuid);
         isCopying = false;
     }
 
@@ -131,9 +141,9 @@ public abstract class AbstractTileTeleporter extends TileEntity
      * Tries to start the copying
      * Player argument is the one who activated the block, and is used to send messages to
      */
-    public void copy(EntityPlayer player)
+    public void copy(UUID playerUuid)
     {
-        setLastPlayer(player);
+        setLastPlayer(playerUuid);
         isCopying = true;
     }
 
@@ -385,9 +395,9 @@ public abstract class AbstractTileTeleporter extends TileEntity
         //Read energy
         energy.deserializeNBT(nbt.getCompoundTag("energy"));
         //Read last player
-        if(nbt.hasUniqueId("player")) lastPlayerUUID = nbt.getUniqueId("player");
+        if(nbt.hasUniqueId("player")) lastPlayerUuid = nbt.getUniqueId("player");
         //Read placed player
-        if(nbt.hasUniqueId("placed")) placedPlayerUUID = nbt.getUniqueId("placed");
+        if(nbt.hasUniqueId("placed")) placedPlayerUuid = nbt.getUniqueId("placed");
         //Read if copying
         isCopying = nbt.getBoolean("isCopying");
         //Read if powered
@@ -400,9 +410,9 @@ public abstract class AbstractTileTeleporter extends TileEntity
         //Write energy
         nbt.setTag("energy", energy.serializeNBT());
         //Write last player
-        if(lastPlayerUUID != null) nbt.setUniqueId("player", lastPlayerUUID);
+        if(lastPlayerUuid != null) nbt.setUniqueId("player", lastPlayerUuid);
         //Write placed player
-        if(placedPlayerUUID != null) nbt.setUniqueId("placed", placedPlayerUUID);
+        if(placedPlayerUuid != null) nbt.setUniqueId("placed", placedPlayerUuid);
         //Write if copying
         nbt.setBoolean("isCopying", isCopying);
         //Write if powered
