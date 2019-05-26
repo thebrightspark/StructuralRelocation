@@ -57,7 +57,7 @@ public class ParticleBlock extends Particle
 
 	private float randRotation()
 	{
-		return rand.nextFloat() * 2 - 0.5F;
+		return (rand.nextFloat() - 0.5F) * 2;
 	}
 
 	@Override
@@ -74,7 +74,7 @@ public class ParticleBlock extends Particle
 
 		if(particleAge == particleMaxAge)
 		{
-			world.playSound(null, posX, posY, posZ, SoundEvents.ENTITY_ENDERMEN_TELEPORT, SoundCategory.BLOCKS, 0.75F, rand.nextFloat() + 0.5F);
+			world.playSound(posX, posY, posZ, SoundEvents.ITEM_CHORUS_FRUIT_TELEPORT, SoundCategory.BLOCKS, 0.75F, rand.nextFloat() + 0.5F, false);
 			if(!inverse)
 				for(int i = 0; i < rand.nextInt(10) + 5; i++)
 					Minecraft.getMinecraft().effectRenderer.addEffect(new ParticleBlockTeleport(world, posX, posY, posZ));
