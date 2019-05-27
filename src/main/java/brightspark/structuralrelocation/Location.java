@@ -2,7 +2,6 @@ package brightspark.structuralrelocation;
 
 import brightspark.structuralrelocation.util.CommonUtils;
 import com.google.common.base.MoreObjects;
-import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -44,11 +43,6 @@ public class Location implements INBTSerializable<NBTTagCompound>
     {
         BlockPos pos = location.position;
         return position.getDistance(pos.getX(), pos.getY(), pos.getZ());
-    }
-
-    public boolean setBlock(Block block)
-    {
-        return setBlockState(block.getDefaultState());
     }
 
     public boolean setBlockState(IBlockState state)

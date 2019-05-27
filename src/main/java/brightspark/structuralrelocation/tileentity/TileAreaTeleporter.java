@@ -15,7 +15,6 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import java.util.Iterator;
 import java.util.UUID;
 
 public class TileAreaTeleporter extends AbstractTileTeleporter implements ITickable
@@ -110,10 +109,8 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         //Check that the target area is completely clear
         EntityPlayer player = getLastPlayer();
         WorldServer targetDim = world.getMinecraftServer().getWorld(target.dimensionId);
-        Iterator<BlockPos> positions = BlockPos.getAllInBox(destinationStart, destinationEnd).iterator();
-        while(positions.hasNext())
+        for(BlockPos checkPos : BlockPos.getAllInBox(destinationStart, destinationEnd))
         {
-            BlockPos checkPos = positions.next();
             switch(checkDestination(new Location(targetDim, checkPos)))
             {
                 case PASS:
@@ -121,10 +118,10 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
                     if(player != null)
                     {
                         player.sendMessage(new TextComponentString("Target area is not clear!\n" +
-                                "Position 1: " + destinationStart.toString() + "\n" +
-                                "Position 2: " + destinationEnd.toString() + "\n" +
-                                "Found block ").appendSibling(new TextComponentTranslation(targetDim.getBlockState(checkPos).getBlock().getTranslationKey() + ".name"))
-                                .appendText(" at " + checkPos.toString()));
+                            "Position 1: " + destinationStart.toString() + "\n" +
+                            "Position 2: " + destinationEnd.toString() + "\n" +
+                            "Found block ").appendSibling(new TextComponentTranslation(targetDim.getBlockState(checkPos).getBlock().getTranslationKey() + ".name"))
+                            .appendText(" at " + checkPos.toString()));
                     }
                     //Update client teleporter so the Debugger item can be used
                     CommonUtils.NETWORK.sendToAll(new MessageUpdateClientTeleporterObstruction(pos, checkPos));
@@ -135,9 +132,9 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
                     if(player != null)
                     {
                         player.sendMessage(new TextComponentString("Target area is not all loaded!\n" +
-                                "Position 1: " + destinationStart.toString() + "\n" +
-                                "Position 2: " + destinationEnd.toString() + "\n" +
-                                "Found block position not loaded: " + checkPos.toString()));
+                            "Position 1: " + destinationStart.toString() + "\n" +
+                            "Position 2: " + destinationEnd.toString() + "\n" +
+                            "Found block position not loaded: " + checkPos.toString()));
                     }
                     if(SRConfig.debugTeleportMessages)
                         StructuralRelocation.LOGGER.info("Can not teleport. Destination area contains an unloaded chunk at block pos " + checkPos.toString() + " in dimension " + target.dimensionId);
