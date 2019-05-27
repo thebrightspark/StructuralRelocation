@@ -188,18 +188,6 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         }
 
         Location from = new Location(world, areaToMove.getCurPos());
-        Location to = new Location(target.world, target.position.add(areaToMove.getCurPosOffset()));
-        if(!hasEnoughEnergy(from, to))
-        {
-            if(SRConfig.debugTeleportMessages && !checkedEnergy)
-            {
-                StructuralRelocation.LOGGER.info("Can not teleport. Not enough power.");
-                checkedEnergy = true;
-            }
-            return;
-        }
-
-        checkedEnergy = false;
 
         //Skip air and unbreakable blocks
         while(areaToMove.getCurPos() != null && checkSource(from, isCopying) == LocCheckResult.PASS)
@@ -208,21 +196,37 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
             from.position = areaToMove.getCurPos();
         }
 
-        if(areaToMove.getCurPos() != null)
-        {
-            //Teleport the block
-            if(isCopying)
-                copyBlock(from, to);
-            else
-                teleportBlock(from, to);
-            //If not waiting for an unloaded chunk, then go to next pos
-            if(waitTicks <= 0)
-                areaToMove.next();
-        }
-        else if(SRConfig.debugTeleportMessages)
-            StructuralRelocation.LOGGER.info("Area " + (isCopying ? "copying" : "teleportation") + " complete.");
-
         markDirty();
+
+        //If reached the end, then don't do anything else
+        if(areaToMove.getCurPos() == null)
+        {
+            if(SRConfig.debugTeleportMessages)
+                StructuralRelocation.LOGGER.info("Area " + (isCopying ? "copying" : "teleportation") + " complete.");
+            return;
+        }
+
+	    Location to = new Location(target.world, target.position.add(areaToMove.getCurPosOffset()));
+	    if(!hasEnoughEnergy(from, to))
+	    {
+		    if(SRConfig.debugTeleportMessages && !checkedEnergy)
+		    {
+			    StructuralRelocation.LOGGER.info("Can not teleport. Not enough power.");
+			    checkedEnergy = true;
+		    }
+		    return;
+	    }
+
+	    checkedEnergy = false;
+
+        //Teleport the block
+        if(isCopying)
+            copyBlock(from, to);
+        else
+            teleportBlock(from, to);
+        //If not waiting for an unloaded chunk, then go to next pos
+        if(waitTicks <= 0)
+            areaToMove.next();
     }
 
     @Override
