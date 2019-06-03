@@ -27,7 +27,6 @@ public class ContainerTeleporter extends Container
     protected Location cachedLocation;
     protected LocationArea cachedArea;
     protected BlockPos cachedCurBlock;
-    protected int slotI = 0;
     protected int invStartX = 8;
     protected int invStartY = 93;
 
@@ -65,12 +64,17 @@ public class ContainerTeleporter extends Container
 
         for(IContainerListener listener : listeners)
         {
+            if(!(listener instanceof EntityPlayerMP))
+                return;
+
+            EntityPlayerMP player = (EntityPlayerMP) listener;
+
             //Energy
             int energy = teleporter.getEnergyStored();
             if(energy != cachedEnergy)
             {
                 cachedEnergy = energy;
-                CommonUtils.NETWORK.sendTo(new MessageUpdateClientContainer(0, energy), (EntityPlayerMP) listener);
+                CommonUtils.NETWORK.sendTo(new MessageUpdateClientContainer(0, energy), player);
             }
 
             //Locations
@@ -81,19 +85,19 @@ public class ContainerTeleporter extends Container
                 if((cachedLocation == null || !cachedLocation.isEqual(tpLocation)) && tpLocation != null)
                 {
                     cachedLocation = tpLocation;
-                    CommonUtils.NETWORK.sendTo(new MessageUpdateTeleporterLocation(cachedLocation), (EntityPlayerMP) listener);
+                    CommonUtils.NETWORK.sendTo(new MessageUpdateTeleporterLocation(cachedLocation), player);
                 }
                 LocationArea tpArea = areaTP.getAreaToMove();
                 if((cachedArea == null || !cachedArea.isEqual(tpArea)) && tpArea != null)
                 {
                     cachedArea = tpArea;
-                    CommonUtils.NETWORK.sendTo(new MessageUpdateTeleporterLocation(cachedArea), (EntityPlayerMP) listener);
+                    CommonUtils.NETWORK.sendTo(new MessageUpdateTeleporterLocation(cachedArea), player);
                 }
                 BlockPos curBlock = areaTP.getCurBlock();
                 if(cachedCurBlock == null || !cachedCurBlock.equals(curBlock))
                 {
                     cachedCurBlock = curBlock;
-                    CommonUtils.NETWORK.sendTo(new MessageUpdateTeleporterCurBlock(cachedCurBlock), (EntityPlayerMP) listener);
+                    CommonUtils.NETWORK.sendTo(new MessageUpdateTeleporterCurBlock(cachedCurBlock), player);
                 }
             }
             else
@@ -102,7 +106,7 @@ public class ContainerTeleporter extends Container
                 if((cachedLocation == null || !cachedLocation.isEqual(location)) && location != null)
                 {
                     cachedLocation = location;
-                    CommonUtils.NETWORK.sendTo(new MessageUpdateTeleporterLocation(cachedLocation), (EntityPlayerMP) listener);
+                    CommonUtils.NETWORK.sendTo(new MessageUpdateTeleporterLocation(cachedLocation), player);
                 }
             }
         }
@@ -112,14 +116,10 @@ public class ContainerTeleporter extends Container
     @SideOnly(Side.CLIENT)
     public void updateProgressBar(int id, int data)
     {
-        switch(id)
-        {
-            case 0:
-                teleporter.setEnergy(data);
-                break;
-            default:
-                StructuralRelocation.LOGGER.warn("Unhandled client container data for ID " + id + "!");
-        }
+        if(id == 0)
+            teleporter.setEnergy(data);
+        else
+            StructuralRelocation.LOGGER.warn("Unhandled client container data for ID " + id + "!");
     }
 
     @SideOnly(Side.CLIENT)
