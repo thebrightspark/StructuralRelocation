@@ -50,10 +50,16 @@ public class MessageSpawnParticleBlock implements IMessage
 		public IMessage onMessage(MessageSpawnParticleBlock message, MessageContext ctx)
 		{
 			Minecraft mc = Minecraft.getMinecraft();
-			mc.addScheduledTask(() -> {
-				Block block = Block.getBlockById(message.blockId);
-				IBlockState state = block.getStateFromMeta(message.blockMeta);
-				mc.effectRenderer.addEffect(new ParticleBlock(mc.world, message.pos, state, message.inverse));
+			//noinspection Convert2Lambda
+			mc.addScheduledTask(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					Block block = Block.getBlockById(message.blockId);
+					IBlockState state = block.getStateFromMeta(message.blockMeta);
+					mc.effectRenderer.addEffect(new ParticleBlock(mc.world, message.pos, state, message.inverse));
+				}
 			});
 			return null;
 		}
