@@ -71,20 +71,15 @@ public class MessageUpdateTeleporterLocation implements IMessage
         public IMessage onMessage(final MessageUpdateTeleporterLocation message, MessageContext ctx)
         {
             final IThreadListener mainThread = Minecraft.getMinecraft();
-            mainThread.addScheduledTask(new Runnable()
-            {
-                @Override
-                public void run()
+            mainThread.addScheduledTask(() -> {
+                Minecraft mc = Minecraft.getMinecraft();
+                Container container = mc.player.openContainer;
+                if(container instanceof ContainerTeleporter)
                 {
-                    Minecraft mc = Minecraft.getMinecraft();
-                    Container container = mc.player.openContainer;
-                    if(container instanceof ContainerTeleporter)
-                    {
-                        if(message.location == null)
-                            ((ContainerTeleporter) container).updateTeleporter(message.area);
-                        else
-                            ((ContainerTeleporter) container).updateTeleporter(message.location);
-                    }
+                    if(message.location == null)
+                        ((ContainerTeleporter) container).updateTeleporter(message.area);
+                    else
+                        ((ContainerTeleporter) container).updateTeleporter(message.location);
                 }
             });
             return null;

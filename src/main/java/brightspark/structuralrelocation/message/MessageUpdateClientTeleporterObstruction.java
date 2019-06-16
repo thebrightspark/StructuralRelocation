@@ -43,15 +43,10 @@ public class MessageUpdateClientTeleporterObstruction implements IMessage
         public IMessage onMessage(final MessageUpdateClientTeleporterObstruction message, MessageContext ctx)
         {
             final IThreadListener mainThread = Minecraft.getMinecraft();
-            mainThread.addScheduledTask(new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    TileEntity te = Minecraft.getMinecraft().world.getTileEntity(message.telePos);
-                    if(te != null && te instanceof TileAreaTeleporter)
-                        ((TileAreaTeleporter) te).lastBlockInTheWay = message.obstPos;
-                }
+            mainThread.addScheduledTask(() -> {
+                TileEntity te = Minecraft.getMinecraft().world.getTileEntity(message.telePos);
+                if(te instanceof TileAreaTeleporter)
+                    ((TileAreaTeleporter) te).lastBlockInTheWay = message.obstPos;
             });
             return null;
         }

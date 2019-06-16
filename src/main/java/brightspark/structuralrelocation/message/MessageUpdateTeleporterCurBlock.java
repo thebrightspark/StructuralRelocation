@@ -40,15 +40,10 @@ public class MessageUpdateTeleporterCurBlock implements IMessage
         public IMessage onMessage(final MessageUpdateTeleporterCurBlock message, MessageContext ctx)
         {
             final IThreadListener mainThread = Minecraft.getMinecraft();
-            mainThread.addScheduledTask(new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    Container container = Minecraft.getMinecraft().player.openContainer;
-                    if(container instanceof ContainerTeleporter)
-                        ((ContainerTeleporter) container).updateTeleporter(message.pos);
-                }
+            mainThread.addScheduledTask(() -> {
+                Container container = Minecraft.getMinecraft().player.openContainer;
+                if(container instanceof ContainerTeleporter)
+                    ((ContainerTeleporter) container).updateTeleporter(message.pos);
             });
             return null;
         }

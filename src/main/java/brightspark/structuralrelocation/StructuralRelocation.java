@@ -37,7 +37,7 @@ public class StructuralRelocation
     public void preInit(FMLPreInitializationEvent event)
     {
         LOGGER = event.getModLog();
-        CommonUtils.regNetwork();
+        CommonUtils.regNetwork(event.getSide());
     }
 
     @Mod.EventHandler

@@ -43,14 +43,7 @@ public class MessageUpdateClientContainer implements IMessage
         public IMessage onMessage(final MessageUpdateClientContainer message, MessageContext ctx)
         {
             final IThreadListener mainThread = Minecraft.getMinecraft();
-            mainThread.addScheduledTask(new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    Minecraft.getMinecraft().player.openContainer.updateProgressBar(message.id, message.value);
-                }
-            });
+            mainThread.addScheduledTask(() -> Minecraft.getMinecraft().player.openContainer.updateProgressBar(message.id, message.value));
             return null;
         }
     }

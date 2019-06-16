@@ -56,45 +56,40 @@ public class MessageGuiTeleport implements IMessage
         public IMessage onMessage(final MessageGuiTeleport message, final MessageContext ctx)
         {
             final IThreadListener mainThread = ctx.getServerHandler().player.getServerWorld();
-            mainThread.addScheduledTask(new Runnable()
-            {
-                @Override
-                public void run()
+            mainThread.addScheduledTask(() -> {
+                WorldServer world = ctx.getServerHandler().player.getServerWorld();
+                EntityPlayer player = world.getPlayerEntityByUUID(message.playerUUID);
+                if(player == null)
                 {
-                    WorldServer world = ctx.getServerHandler().player.getServerWorld();
-                    EntityPlayer player = world.getPlayerEntityByUUID(message.playerUUID);
-                    if(player == null)
-                    {
-                        StructuralRelocation.LOGGER.warn("Player could not be found when trying to click teleporter GUI button. UUID: " + message.playerUUID.toString());
-                        return;
-                    }
+                    StructuralRelocation.LOGGER.warn("Player could not be found when trying to click teleporter GUI button. UUID: " + message.playerUUID.toString());
+                    return;
+                }
 
-                    TileEntity te = world.getTileEntity(message.pos);
-                    if(!(te instanceof AbstractTileTeleporter))
-                    {
-                        StructuralRelocation.LOGGER.warn("Teleporter could not be found when trying to click teleporter GUI button. Pos: " + message.pos.toString());
-                        return;
-                    }
-                    AbstractTileTeleporter teleporter = (AbstractTileTeleporter) te;
+                TileEntity te = world.getTileEntity(message.pos);
+                if(!(te instanceof AbstractTileTeleporter))
+                {
+                    StructuralRelocation.LOGGER.warn("Teleporter could not be found when trying to click teleporter GUI button. Pos: " + message.pos.toString());
+                    return;
+                }
+                AbstractTileTeleporter teleporter = (AbstractTileTeleporter) te;
 
-                    switch(message.buttonId)
-                    {
-                        case 0: //Teleport
-                            teleporter.teleport(message.playerUUID);
-                            break;
-                        case 1: //Copy
-                            if(player.capabilities.isCreativeMode)
-                                teleporter.copy(message.playerUUID);
-                            else
-                                player.sendMessage(new TextComponentString("You must be in creative to copy blocks at the moment!"));
-                            break;
-                        case 2: //Stop
-                            if(teleporter instanceof TileAreaTeleporter)
-                                ((TileAreaTeleporter) teleporter).stop();
-                            break;
-                        default:
-                            StructuralRelocation.LOGGER.warn("Unhandled button ID '" + message.buttonId + "' for teleporter GUI!");
-                    }
+                switch(message.buttonId)
+                {
+                    case 0: //Teleport
+                        teleporter.teleport(message.playerUUID);
+                        break;
+                    case 1: //Copy
+                        if(player.capabilities.isCreativeMode)
+                            teleporter.copy(message.playerUUID);
+                        else
+                            player.sendMessage(new TextComponentString("You must be in creative to copy blocks at the moment!"));
+                        break;
+                    case 2: //Stop
+                        if(teleporter instanceof TileAreaTeleporter)
+                            ((TileAreaTeleporter) teleporter).stop();
+                        break;
+                    default:
+                        StructuralRelocation.LOGGER.warn("Unhandled button ID '" + message.buttonId + "' for teleporter GUI!");
                 }
             });
             return null;
