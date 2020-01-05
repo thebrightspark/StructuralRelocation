@@ -29,7 +29,7 @@ public class CommonUtils
 
     private static <REQ extends IMessage, REPLY extends IMessage> void regMessage(Class<? extends IMessageHandler<REQ, REPLY>> messageHandler, Class<REQ> requestMessageType, int discriminator, Side receivingSide, Side thisSide)
     {
-        IMessageHandler<? super REQ, ? extends REPLY> handler = receivingSide == thisSide ? instantiate(messageHandler) : new DummyHandler<>();
+        IMessageHandler<? super REQ, ? extends REPLY> handler = receivingSide == thisSide || thisSide == Side.CLIENT ? instantiate(messageHandler) : new DummyHandler<>();
         NETWORK.registerMessage(handler, requestMessageType, discriminator, receivingSide);
     }
 
