@@ -18,11 +18,14 @@ import net.minecraft.world.World;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ParticleBlock extends Particle
 {
 	private boolean inverse;
-	private float rotX, rotY, rotZ;
+	private Map<String, Object> data = new HashMap<>();
+	private TeleportAnimation animation = SRConfig.client.teleportAnimation;
 	private RedrawableTesselator redrawableTesselator;
 
 	public ParticleBlock(World worldIn, BlockPos pos, IBlockState state, boolean inverse)
@@ -30,12 +33,10 @@ public class ParticleBlock extends Particle
 		super(worldIn, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
 		particleMaxAge = SRConfig.common.teleportAnimationTimeTicks;
 		this.inverse = inverse;
-		rotX = randRotation();
-		rotY = randRotation();
-		rotZ = randRotation();
 		Color colour = Color.getHSBColor(rand.nextFloat(), randFloat(0.3f), randFloat(0.7f));
 		float[] rgb = colour.getRGBColorComponents(null);
 		setRBGColorF(rgb[0], rgb[1], rgb[2]);
+		animation.init(data, rand);
 
 		//Construct buffer to use for rendering
 		IBakedModel model = Minecraft.getMinecraft().getBlockRendererDispatcher().getModelForState(state);
@@ -51,11 +52,6 @@ public class ParticleBlock extends Particle
 	private float randFloat(float min)
 	{
 		return min + rand.nextFloat() * (1f - min);
-	}
-
-	private float randRotation()
-	{
-		return (rand.nextFloat() - 0.5F) * 2;
 	}
 
 	@Override
@@ -82,27 +78,17 @@ public class ParticleBlock extends Particle
 	@Override
 	public void renderParticle(BufferBuilder buffer, Entity entityIn, float partialTicks, float rotationX, float rotationZ, float rotationYZ, float rotationXY, float rotationXZ)
 	{
-		if(particleAge > particleMaxAge || (particleAge == particleMaxAge && partialTicks > 0F))
-			return;
-
 		GlStateManager.pushMatrix();
 		GlStateManager.enableAlpha();
 		GlStateManager.enableBlend();
 		GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
 		GlStateManager.disableFog();
 
-		double translationX = posX - (entityIn.prevPosX + (entityIn.posX - entityIn.prevPosX) * (double) partialTicks);
-		double translationY = posY - (entityIn.prevPosY + (entityIn.posY - entityIn.prevPosY) * (double) partialTicks);
-		double translationZ = posZ - (entityIn.prevPosZ + (entityIn.posZ - entityIn.prevPosZ) * (double) partialTicks);
-		GlStateManager.translate(translationX, translationY, translationZ);
+		GlStateManager.translate(posX - Particle.interpPosX, posY - Particle.interpPosY, posZ - Particle.interpPosZ);
 
-		double agePct = ((double) particleAge + partialTicks) / (double) particleMaxAge;
-		float ageProgressInv = (float) Math.sin((agePct * (Math.PI / 2)) + (inverse ? 0 : Math.PI / 2));
-		float ageProgress = 1 - ageProgressInv;
-		GlStateManager.rotate(ageProgress * 200F, rotX, rotY, rotZ);
-		GlStateManager.scale(ageProgressInv, ageProgressInv, ageProgressInv);
+		if (particleAge <= particleMaxAge)
+			animation.preRender(data, entityIn, partialTicks, posX, posY, posZ, particleAge, particleMaxAge, inverse);
 		GlStateManager.translate(-0.5F, -0.5F, -0.5F);
-
 		redrawableTesselator.draw();
 
 		GlStateManager.popMatrix();

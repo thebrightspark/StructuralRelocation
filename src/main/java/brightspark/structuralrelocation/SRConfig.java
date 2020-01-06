@@ -1,5 +1,6 @@
 package brightspark.structuralrelocation;
 
+import brightspark.structuralrelocation.particle.TeleportAnimation;
 import net.minecraftforge.common.config.Config;
 import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
@@ -31,6 +32,10 @@ public class SRConfig
                 "Note that if disabled, then blocks will instantly disappear from their source positions and will reappear at their destination positions after the time set by the 'Teleport Animation Time Ticks' config"
         })
         public boolean enableTeleportAnimation = true;
+
+        @Config.Name("Teleport Animation")
+        @Config.Comment("The teleport animation style to use")
+        public TeleportAnimation teleportAnimation = TeleportAnimation.FLAIR;
     }
 
     public static class Common
