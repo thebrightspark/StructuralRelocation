@@ -1,5 +1,6 @@
 package brightspark.structuralrelocation.particle;
 
+import brightspark.structuralrelocation.SRConfig;
 import brightspark.structuralrelocation.util.RedrawableTesselator;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
@@ -27,7 +28,7 @@ public class ParticleBlock extends Particle
 	public ParticleBlock(World worldIn, BlockPos pos, IBlockState state, boolean inverse)
 	{
 		super(worldIn, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
-		particleMaxAge = 10;
+		particleMaxAge = SRConfig.common.teleportAnimationTimeTicks;
 		this.inverse = inverse;
 		rotX = randRotation();
 		rotY = randRotation();
@@ -66,7 +67,7 @@ public class ParticleBlock extends Particle
 	@Override
 	public void onUpdate()
 	{
-		if(particleAge++ >= particleMaxAge)
+		if(particleAge++ >= particleMaxAge || !SRConfig.client.enableTeleportAnimation)
 			setExpired();
 
 		if(particleAge == particleMaxAge)

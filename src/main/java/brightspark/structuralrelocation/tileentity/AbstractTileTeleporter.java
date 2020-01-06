@@ -175,25 +175,25 @@ public abstract class AbstractTileTeleporter extends TileEntity
         String blockName = state.getBlock().getRegistryName().toString();
         if(!worldIn.isBlockLoaded(posIn))
         {
-            if(SRConfig.debugTeleportMessages)
+            if(SRConfig.server.debugTeleportMessages)
                 StructuralRelocation.LOGGER.info("Can not teleport/copy block {} at {} -> Chunk not loaded.", blockName, posIn);
             return LocCheckResult.WAIT;
         }
         if(worldIn.isAirBlock(posIn))
         {
-            if(SRConfig.debugTeleportMessages)
+            if(SRConfig.server.debugTeleportMessages)
                 StructuralRelocation.LOGGER.info("Can not teleport/copy block {} at {} -> Is an air block.", blockName, posIn);
             return LocCheckResult.PASS;
         }
         if((getLastPlayer() != null && !getLastPlayer().capabilities.isCreativeMode) && state.getBlock().getBlockHardness(state, worldIn, posIn) < 0)
         {
-            if(SRConfig.debugTeleportMessages)
+            if(SRConfig.server.debugTeleportMessages)
                 StructuralRelocation.LOGGER.info("Can not teleport/copy block {} at {} -> Block is unbreakable.", blockName, posIn);
             return LocCheckResult.PASS;
         }
-        if(isFluidSourceBlock(worldIn, posIn) && !SRConfig.canTeleportFluids)
+        if(isFluidSourceBlock(worldIn, posIn) && !SRConfig.server.canTeleportFluids)
         {
-            if(SRConfig.debugTeleportMessages)
+            if(SRConfig.server.debugTeleportMessages)
                 StructuralRelocation.LOGGER.info("Can not teleport/copy block {} at {} -> Block is a fluid source.", blockName, posIn);
             return LocCheckResult.PASS;
         }
@@ -201,7 +201,7 @@ public abstract class AbstractTileTeleporter extends TileEntity
         //Fire BreakEvent if teleporting
         if(!copy && MinecraftForge.EVENT_BUS.post(new BlockEvent.BreakEvent(worldIn, posIn, state, getLastPlayer())))
         {
-            if(SRConfig.debugTeleportMessages)
+            if(SRConfig.server.debugTeleportMessages)
                 StructuralRelocation.LOGGER.info("Can not teleport block {} at {} -> BreakEvent cancelled.", blockName, posIn);
             return LocCheckResult.PASS;
         }
@@ -218,19 +218,19 @@ public abstract class AbstractTileTeleporter extends TileEntity
 
         if(!worldIn.isBlockLoaded(posIn))
         {
-            if(SRConfig.debugTeleportMessages)
+            if(SRConfig.server.debugTeleportMessages)
                 StructuralRelocation.LOGGER.info("Can not teleport to {} in dimension {} -> Chunk not loaded.", posIn, dimensionId);
             return LocCheckResult.WAIT;
         }
         if(!worldIn.isBlockModifiable(getLastPlayer(), posIn))
         {
-            if(SRConfig.debugTeleportMessages)
+            if(SRConfig.server.debugTeleportMessages)
                 StructuralRelocation.LOGGER.info("Can not teleport to {} at {} in dimension {} -> No permission to modify destination.", blockName, posIn, dimensionId);
             return LocCheckResult.PASS;
         }
         if((!worldIn.isAirBlock(posIn) && !worldIn.getBlockState(posIn).getBlock().isReplaceable(worldIn, posIn)) || isFluidSourceBlock(worldIn, posIn))
         {
-            if(SRConfig.debugTeleportMessages)
+            if(SRConfig.server.debugTeleportMessages)
                 StructuralRelocation.LOGGER.info("Can not teleport to {} at {} in dimension {} -> Destination block is not air, not replaceable or is a fluid source block.", blockName, posIn, dimensionId);
             return LocCheckResult.PASS;
         }
@@ -239,7 +239,7 @@ public abstract class AbstractTileTeleporter extends TileEntity
         if(ForgeEventFactory.onPlayerBlockPlace(getLastPlayer(), snapshot, EnumFacing.UP, EnumHand.MAIN_HAND).isCanceled())
         {
             snapshot.restore(true, false);
-            if(SRConfig.debugTeleportMessages)
+            if(SRConfig.server.debugTeleportMessages)
                 StructuralRelocation.LOGGER.info("Can not teleport to {} in dimension {} -> PlaceEvent cancelled.", blockName, posIn);
             return LocCheckResult.PASS;
         }
@@ -251,7 +251,7 @@ public abstract class AbstractTileTeleporter extends TileEntity
      */
     protected void teleportBlock(Location from, Location to)
     {
-        if(doTeleporterAction(from, to, true, true) && SRConfig.debugTeleportMessages)
+        if(doTeleporterAction(from, to, true, true) && SRConfig.server.debugTeleportMessages)
             StructuralRelocation.LOGGER.info("Successfully teleported block from {} to {}", from, to);
     }
 
@@ -260,7 +260,7 @@ public abstract class AbstractTileTeleporter extends TileEntity
      */
     protected void copyBlock(Location from, Location to)
     {
-        if(doTeleporterAction(from, to, true, false) && SRConfig.debugTeleportMessages)
+        if(doTeleporterAction(from, to, true, false) && SRConfig.server.debugTeleportMessages)
             StructuralRelocation.LOGGER.info("Successfully copied block from {} to {}", from, to);
     }
 
@@ -269,7 +269,7 @@ public abstract class AbstractTileTeleporter extends TileEntity
         switch(result)
         {
             case WAIT:
-                waitTicks = SRConfig.teleportWaitTicks;
+                waitTicks = SRConfig.server.teleportWaitTicks;
             case PASS:
                 return false;
             default:
@@ -304,20 +304,23 @@ public abstract class AbstractTileTeleporter extends TileEntity
         }
 
         //Spawn particle for destination animation
-        BlockPos toPos = to.position;
         IBlockState state = from.getBlockState();
-        CommonUtils.NETWORK.sendToAllAround(new MessageSpawnParticleBlock(true, toPos, state),
-            new NetworkRegistry.TargetPoint(to.dimensionId, toPos.getX(), toPos.getY(), toPos.getZ(), 30D));
+        spawnTeleportParticle(state, to, true);
 
         //Schedule block state to be set
-        PostponedBlockSettingHandler.addBlockToSet(to, state,  newTe);
+        if (SRConfig.common.teleportAnimationTimeTicks == 0)
+        {
+            to.setBlockState(state);
+            if (newTe != null)
+                to.setTE(newTe);
+        }
+        else
+            PostponedBlockSettingHandler.addBlockToSet(to, state, newTe);
 
         if(removeBlocks)
         {
 	        //Spawn particle for source animation
-	        BlockPos fromPos = from.position;
-	        CommonUtils.NETWORK.sendToAllAround(new MessageSpawnParticleBlock(false, fromPos, state),
-		        new NetworkRegistry.TargetPoint(from.dimensionId, fromPos.getX(), fromPos.getY(), fromPos.getZ(), 30D));
+            spawnTeleportParticle(state, from, false);
 
             //Remove the old block and tile entity
             from.removeTE();
@@ -325,6 +328,15 @@ public abstract class AbstractTileTeleporter extends TileEntity
         }
         useEnergy(from, to);
         return true;
+    }
+
+    private void spawnTeleportParticle(IBlockState state, Location location, boolean inverse)
+    {
+        if (SRConfig.common.teleportAnimationTimeTicks == 0)
+            return;
+        BlockPos pos = location.position;
+        CommonUtils.NETWORK.sendToAllAround(new MessageSpawnParticleBlock(inverse, pos, state),
+                new NetworkRegistry.TargetPoint(location.dimensionId, pos.getX(), pos.getY(), pos.getZ(), 30D));
     }
 
     public int getEnergyStored()
@@ -360,9 +372,9 @@ public abstract class AbstractTileTeleporter extends TileEntity
 
     protected int calcEnergyCost(Location from, Location to)
     {
-        int cost = SRConfig.energyPerBlockBase + (int) Math.ceil(SRConfig.energyPerDistanceMultiplier * 20F * Math.ceil(Math.log(from.distanceTo(to))));
+        int cost = SRConfig.common.energyPerBlockBase + (int) Math.ceil(SRConfig.common.energyPerDistanceMultiplier * 20F * Math.ceil(Math.log(from.distanceTo(to))));
         if(from.dimensionId != to.dimensionId)
-            cost *= SRConfig.energyAcrossDimensionsMultiplier;
+            cost *= SRConfig.common.energyAcrossDimensionsMultiplier;
         return cost;
     }
 

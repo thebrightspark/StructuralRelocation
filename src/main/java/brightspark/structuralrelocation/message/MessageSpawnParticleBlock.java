@@ -1,5 +1,6 @@
 package brightspark.structuralrelocation.message;
 
+import brightspark.structuralrelocation.SRConfig;
 import brightspark.structuralrelocation.particle.ParticleBlock;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.block.Block;
@@ -51,6 +52,8 @@ public class MessageSpawnParticleBlock implements IMessage
 		{
 			Minecraft mc = Minecraft.getMinecraft();
 			mc.addScheduledTask(() -> {
+				if (!SRConfig.client.enableTeleportAnimation || SRConfig.common.teleportAnimationTimeTicks == 0)
+					return;
 				Block block = Block.getBlockById(message.blockId);
 				IBlockState state = block.getStateFromMeta(message.blockMeta);
 				mc.effectRenderer.addEffect(new ParticleBlock(mc.world, message.pos, state, message.inverse));

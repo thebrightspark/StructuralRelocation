@@ -74,7 +74,7 @@ public class LocationArea implements INBTSerializable<NBTTagCompound>
     public boolean isTooBig()
     {
         for(EnumFacing.Axis axis : EnumFacing.Axis.values())
-            if(getSize(axis) > SRConfig.maxTeleportAreaSize)
+            if(getSize(axis) > SRConfig.common.maxTeleportAreaSize)
                 return true;
         return false;
     }

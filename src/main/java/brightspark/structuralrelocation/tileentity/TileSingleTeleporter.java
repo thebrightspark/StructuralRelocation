@@ -41,13 +41,13 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
         if(world.isRemote) return false;
         if(target == null)
         {
-            if(SRConfig.debugTeleportMessages)
+            if(SRConfig.server.debugTeleportMessages)
                 StructuralRelocation.LOGGER.info("Can not teleport - no target set");
             return false;
         }
         if(!hasEnoughEnergy(toTeleport, target))
         {
-            if(SRConfig.debugTeleportMessages)
+            if(SRConfig.server.debugTeleportMessages)
                 StructuralRelocation.LOGGER.info("Can not teleport - not enough power.");
             return false;
         }
@@ -79,7 +79,7 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
         if(doPreActionChecks())
         {
             teleportBlock(toTeleport, target);
-            if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Block Teleported");
+            if(SRConfig.server.debugTeleportMessages) StructuralRelocation.LOGGER.info("Block Teleported");
         }
     }
 
@@ -90,7 +90,7 @@ public class TileSingleTeleporter extends AbstractTileTeleporter
         if(doPreActionChecks())
         {
             copyBlock(toTeleport, target);
-            if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Block Copied");
+            if(SRConfig.server.debugTeleportMessages) StructuralRelocation.LOGGER.info("Block Copied");
         }
     }
 

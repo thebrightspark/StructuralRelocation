@@ -1,6 +1,7 @@
 package brightspark.structuralrelocation.handler;
 
 import brightspark.structuralrelocation.Location;
+import brightspark.structuralrelocation.SRConfig;
 import brightspark.structuralrelocation.StructuralRelocation;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.tileentity.TileEntity;
@@ -25,7 +26,7 @@ public class PostponedBlockSettingHandler
 	public static void addBlockToSet(Location location, IBlockState state, TileEntity te)
 	{
 		List<PostponedBlock> blocks = blocksToSet.computeIfAbsent(location.dimensionId, dimId -> new LinkedList<>());
-		blocks.add(new PostponedBlock(location.world.getTotalWorldTime() + 10, location, state, te));
+		blocks.add(new PostponedBlock(location.world.getTotalWorldTime() + SRConfig.common.teleportAnimationTimeTicks, location, state, te));
 	}
 
 	@SubscribeEvent
@@ -45,6 +46,9 @@ public class PostponedBlockSettingHandler
 					block.set();
 					iterator.remove();
 				}
+				else
+					// Don't need to check any more, as all the rest will have the same time or later
+					break;
 			}
 		}
 	}

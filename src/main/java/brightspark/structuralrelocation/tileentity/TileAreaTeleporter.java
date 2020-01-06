@@ -98,7 +98,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
         if(world.isRemote) return false;
         if(target == null || areaToMove.getArea() == null)
         {
-            if(SRConfig.debugTeleportMessages)
+            if(SRConfig.server.debugTeleportMessages)
                 StructuralRelocation.LOGGER.info("Can not teleport. Either no target set or no area set.");
             return false;
         }
@@ -125,7 +125,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
                     }
                     //Update client teleporter so the Debugger item can be used
                     CommonUtils.NETWORK.sendToAll(new MessageUpdateClientTeleporterObstruction(pos, checkPos));
-                    if(SRConfig.debugTeleportMessages)
+                    if(SRConfig.server.debugTeleportMessages)
                         StructuralRelocation.LOGGER.info("Can not teleport. Destination area contains an obstruction at " + checkPos.toString() + " in dimension " + target.dimensionId);
                     return false;
                 case WAIT:
@@ -136,7 +136,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
                             "Position 2: " + destinationEnd.toString() + "\n" +
                             "Found block position not loaded: " + checkPos.toString()));
                     }
-                    if(SRConfig.debugTeleportMessages)
+                    if(SRConfig.server.debugTeleportMessages)
                         StructuralRelocation.LOGGER.info("Can not teleport. Destination area contains an unloaded chunk at block pos " + checkPos.toString() + " in dimension " + target.dimensionId);
                     return false;
             }
@@ -153,7 +153,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
     public void teleport(UUID playerUuid)
     {
         super.teleport(playerUuid);
-        if(doPreActionChecks() && SRConfig.debugTeleportMessages)
+        if(doPreActionChecks() && SRConfig.server.debugTeleportMessages)
             StructuralRelocation.LOGGER.info("Area teleportation successfully started.");
     }
 
@@ -161,7 +161,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
     public void copy(UUID playerUuid)
     {
         super.copy(playerUuid);
-        if(doPreActionChecks() && SRConfig.debugTeleportMessages)
+        if(doPreActionChecks() && SRConfig.server.debugTeleportMessages)
             StructuralRelocation.LOGGER.info("Area copy successfully started.");
     }
 
@@ -172,7 +172,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
     {
         areaToMove.setCurPos(null);
         markDirty();
-        if(SRConfig.debugTeleportMessages) StructuralRelocation.LOGGER.info("Teleportation stopped.");
+        if(SRConfig.server.debugTeleportMessages) StructuralRelocation.LOGGER.info("Teleportation stopped.");
     }
 
     @Override
@@ -187,46 +187,53 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
             return;
         }
 
-        Location from = new Location(world, areaToMove.getCurPos());
+        for(int i = 0; i < SRConfig.server.numBlockPerTick; i++) {
+            if (isFinished())
+                return;
 
-        //Skip air and unbreakable blocks
-        while(areaToMove.getCurPos() != null && checkSource(from, isCopying) == LocCheckResult.PASS)
-        {
-            areaToMove.next();
-            from.position = areaToMove.getCurPos();
+            Location from = new Location(world, areaToMove.getCurPos());
+
+            //Skip air and unbreakable blocks
+            while (areaToMove.getCurPos() != null && checkSource(from, isCopying) == LocCheckResult.PASS) {
+                areaToMove.next();
+                from.position = areaToMove.getCurPos();
+            }
+
+            markDirty();
+
+            if (isFinished())
+                return;
+
+            Location to = new Location(target.world, target.position.add(areaToMove.getCurPosOffset()));
+            if (!hasEnoughEnergy(from, to)) {
+                if (SRConfig.server.debugTeleportMessages && !checkedEnergy) {
+                    StructuralRelocation.LOGGER.info("Can not teleport. Not enough power.");
+                    checkedEnergy = true;
+                }
+                return;
+            }
+
+            checkedEnergy = false;
+
+            //Teleport the block
+            if (isCopying)
+                copyBlock(from, to);
+            else
+                teleportBlock(from, to);
+            //If not waiting for an unloaded chunk, then go to next pos
+            if (waitTicks <= 0)
+                areaToMove.next();
+            else
+                return;
         }
+    }
 
-        markDirty();
-
-        //If reached the end, then don't do anything else
-        if(areaToMove.getCurPos() == null)
-        {
-            if(SRConfig.debugTeleportMessages)
-                StructuralRelocation.LOGGER.info("Area " + (isCopying ? "copying" : "teleportation") + " complete.");
-            return;
-        }
-
-	    Location to = new Location(target.world, target.position.add(areaToMove.getCurPosOffset()));
-	    if(!hasEnoughEnergy(from, to))
-	    {
-		    if(SRConfig.debugTeleportMessages && !checkedEnergy)
-		    {
-			    StructuralRelocation.LOGGER.info("Can not teleport. Not enough power.");
-			    checkedEnergy = true;
-		    }
-		    return;
-	    }
-
-	    checkedEnergy = false;
-
-        //Teleport the block
-        if(isCopying)
-            copyBlock(from, to);
-        else
-            teleportBlock(from, to);
-        //If not waiting for an unloaded chunk, then go to next pos
-        if(waitTicks <= 0)
-            areaToMove.next();
+    private boolean isFinished()
+    {
+        boolean finished = areaToMove.getCurPos() == null;
+        if (finished && SRConfig.server.debugTeleportMessages)
+            StructuralRelocation.LOGGER.info("Area " + (isCopying ? "copying" : "teleportation") + " complete.");
+        return finished;
     }
 
     @Override

@@ -53,7 +53,7 @@ public class ClientEventHandler
 
     private static Color getBoxColour()
     {
-        String colourString = SRConfig.boxRenderColour;
+        String colourString = SRConfig.client.boxRenderColour;
         if(prevBoxColour == null)
             prevBoxColour = colourString;
         else if(prevBoxColour.equals(colourString))
