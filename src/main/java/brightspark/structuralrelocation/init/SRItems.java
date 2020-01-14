@@ -1,28 +1,21 @@
 package brightspark.structuralrelocation.init;
 
-import brightspark.structuralrelocation.item.ItemDebugger;
-import brightspark.structuralrelocation.item.ItemSelector;
+import brightspark.structuralrelocation.StructuralRelocation;
 import net.minecraft.item.Item;
+import net.minecraftforge.fml.common.registry.GameRegistry;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.annotation.Nonnull;
 
+@GameRegistry.ObjectHolder(StructuralRelocation.MOD_ID)
 public class SRItems
 {
-    public static List<Item> ITEMS = new ArrayList<Item>();
+    public static final Item selector = getNullItem();
+    public static final Item debugger = getNullItem();
 
-    public static Item itemSelector, itemDebugger;
-
-    public static void regItem(Item item)
+    @SuppressWarnings("ConstantConditions")
+    @Nonnull
+    private static Item getNullItem()
     {
-        ITEMS.add(item);
-    }
-
-    public static void regItems()
-    {
-        if(!ITEMS.isEmpty()) return;
-
-        regItem(itemSelector = new ItemSelector());
-        regItem(itemDebugger = new ItemDebugger());
+        return null;
     }
 }

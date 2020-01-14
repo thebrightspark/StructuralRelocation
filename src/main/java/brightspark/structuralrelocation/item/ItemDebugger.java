@@ -86,7 +86,7 @@ public class ItemDebugger extends ItemBasic
     {
         Location location = getTeleporterLoc(stack);
         if(location == null)
-            tooltip.add("Not linked to an " + SRBlocks.areaTeleporter.getLocalizedName() + "!");
+            tooltip.add("Not linked to an " + SRBlocks.area_teleporter.getLocalizedName() + "!");
         else
         {
             tooltip.add(TextFormatting.GOLD + "Dimension ID: " + TextFormatting.GRAY + location.dimensionId);

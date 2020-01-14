@@ -13,6 +13,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
@@ -41,6 +42,7 @@ public abstract class AbstractTileTeleporter extends TileEntity
     protected boolean isCopying, isPowered;
     protected int waitTicks = 0;
     public SREnergyStorage energy;
+    public InventoryCamo camoInv = new InventoryCamo(this);
 
     public AbstractTileTeleporter()
     {
@@ -385,6 +387,14 @@ public abstract class AbstractTileTeleporter extends TileEntity
         energy.setEnergyStored(amount);
     }
 
+    public void markAndNotifyBlock()
+    {
+        if (world != null) {
+            IBlockState state = world.getBlockState(pos);
+            world.markAndNotifyBlock(pos, world.getChunk(pos), state, state, 2);
+        }
+    }
+
     @Override
     public boolean hasCapability(Capability<?> capability, EnumFacing facing)
     {
@@ -404,31 +414,23 @@ public abstract class AbstractTileTeleporter extends TileEntity
     {
         super.readFromNBT(nbt);
 
-        //Read energy
         energy.deserializeNBT(nbt.getCompoundTag("energy"));
-        //Read last player
         if(nbt.hasUniqueId("player")) lastPlayerUuid = nbt.getUniqueId("player");
-        //Read placed player
         if(nbt.hasUniqueId("placed")) placedPlayerUuid = nbt.getUniqueId("placed");
-        //Read if copying
         isCopying = nbt.getBoolean("isCopying");
-        //Read if powered
         isPowered = nbt.getBoolean("isPowered");
+        camoInv.setInventorySlotContents(0, new ItemStack(nbt.getCompoundTag("camo")));
     }
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound nbt)
     {
-        //Write energy
         nbt.setTag("energy", energy.serializeNBT());
-        //Write last player
         if(lastPlayerUuid != null) nbt.setUniqueId("player", lastPlayerUuid);
-        //Write placed player
         if(placedPlayerUuid != null) nbt.setUniqueId("placed", placedPlayerUuid);
-        //Write if copying
         nbt.setBoolean("isCopying", isCopying);
-        //Write if powered
         nbt.setBoolean("isPowered", isPowered);
+        nbt.setTag("camo", camoInv.getStackInSlot(0).writeToNBT(new NBTTagCompound()));
 
         return super.writeToNBT(nbt);
     }

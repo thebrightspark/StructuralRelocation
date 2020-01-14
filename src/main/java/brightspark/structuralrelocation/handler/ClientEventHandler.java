@@ -186,7 +186,7 @@ public class ClientEventHandler
         float partialTicks = event.getPartialTicks();
 
         //Get held Selector item
-        ItemStack heldItem = getHeldItem(SRItems.itemSelector);
+        ItemStack heldItem = getHeldItem(SRItems.selector);
         if(heldItem != null)
         {
             //Get selector mode
@@ -219,7 +219,7 @@ public class ClientEventHandler
         }
 
         //Get held Debugger item
-        heldItem = getHeldItem(SRItems.itemDebugger);
+        heldItem = getHeldItem(SRItems.debugger);
         if(heldItem != null)
         {
             //Get selected teleporter

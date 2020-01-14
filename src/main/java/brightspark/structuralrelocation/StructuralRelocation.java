@@ -1,6 +1,7 @@
 package brightspark.structuralrelocation;
 
 import brightspark.structuralrelocation.handler.GuiHandler;
+import brightspark.structuralrelocation.handler.RegistrationHandler;
 import brightspark.structuralrelocation.init.SRBlocks;
 import brightspark.structuralrelocation.util.CommonUtils;
 import net.minecraft.creativetab.CreativeTabs;
@@ -29,7 +30,7 @@ public class StructuralRelocation
         @Override
         public ItemStack createIcon()
         {
-            return new ItemStack(SRBlocks.areaTeleporter);
+            return new ItemStack(SRBlocks.area_teleporter);
         }
     };
 
@@ -43,8 +44,7 @@ public class StructuralRelocation
     @Mod.EventHandler
     public void init(FMLInitializationEvent event)
     {
-        SRBlocks.regTileEntities();
-
+        RegistrationHandler.regTileEntities();
         NetworkRegistry.INSTANCE.registerGuiHandler(instance, new GuiHandler());
     }
 }

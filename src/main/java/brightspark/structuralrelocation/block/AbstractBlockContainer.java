@@ -31,18 +31,6 @@ public abstract class AbstractBlockContainer extends BlockBasic implements ITile
         hasGui = true;
     }
 
-    @Override
-    public boolean isOpaqueCube(IBlockState state)
-    {
-        return false;
-    }
-
-    @Override
-    public boolean isFullCube(IBlockState state)
-    {
-        return false;
-    }
-
     @SideOnly(Side.CLIENT)
     public GuiScreen getGui(InventoryPlayer invPlayer, TileEntity te)
     {

@@ -46,7 +46,10 @@ public class ContainerTeleporter extends Container
     /**
      * Called after init() to add slots to the container.
      */
-    protected void addSlots() {}
+    protected void addSlots()
+    {
+        addSlotToContainer(new SlotCamo(teleporter.camoInv, 156, 4));
+    }
 
     @Override
     public boolean canInteractWith(EntityPlayer playerIn)

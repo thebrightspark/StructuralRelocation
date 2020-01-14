@@ -6,6 +6,8 @@ import brightspark.structuralrelocation.item.ItemSelector;
 import brightspark.structuralrelocation.tileentity.AbstractTileTeleporter;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
+import net.minecraft.block.properties.IProperty;
+import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.EntityLivingBase;
@@ -17,12 +19,38 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.common.property.ExtendedBlockState;
+import net.minecraftforge.common.property.IExtendedBlockState;
+import net.minecraftforge.common.property.IUnlistedProperty;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 public abstract class AbstractBlockTeleporter extends AbstractBlockContainer
 {
+    public static final IUnlistedProperty<IBlockState> PROP_CAMO = new IUnlistedProperty<IBlockState>() {
+        @Override
+        public String getName() {
+            return "camo";
+        }
+
+        @Override
+        public boolean isValid(IBlockState value) {
+            return true;
+        }
+
+        @Override
+        public Class<IBlockState> getType() {
+            return IBlockState.class;
+        }
+
+        @Override
+        public String valueToString(IBlockState value) {
+            return value.toString();
+        }
+    };
+
     public AbstractBlockTeleporter(String name)
     {
         super(name, Material.IRON);
@@ -72,5 +100,21 @@ public abstract class AbstractBlockTeleporter extends AbstractBlockContainer
             if(isPowered)
                 teleporter.teleport(teleporter.getPlacedPlayerUuid());
         }
+    }
+
+    @Override
+    protected BlockStateContainer createBlockState()
+    {
+        return new ExtendedBlockState(this, new IProperty[0], new IUnlistedProperty[] { PROP_CAMO });
+    }
+
+    @Override
+    public IBlockState getExtendedState(IBlockState state, IBlockAccess world, BlockPos pos)
+    {
+        if (!(state instanceof IExtendedBlockState)) return state;
+        TileEntity te = world.getTileEntity(pos);
+        if (!(te instanceof AbstractTileTeleporter)) return state;
+        IBlockState camo = ((AbstractTileTeleporter) te).camoInv.getBlockState();
+        return camo == null ? state : ((IExtendedBlockState) state).withProperty(PROP_CAMO, camo);
     }
 }

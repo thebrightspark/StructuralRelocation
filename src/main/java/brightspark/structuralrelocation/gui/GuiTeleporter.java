@@ -248,8 +248,6 @@ public class GuiTeleporter extends GuiContainer
     {
         fontRenderer.drawString(I18n.format(teleporter.getBlockType().getTranslationKey() + ".name"), 8, 6, textColour);
         fontRenderer.drawString(I18n.format("container.inventory"), 8, 82, textColour);
-
-        //TODO: Draw any extra text
     }
 
     protected void drawTooltips(List<String> tooltip, int mouseX, int mouseY)
