@@ -22,9 +22,7 @@ public class InventoryCamo implements IInventory {
     private void updateBlockState() {
         blockState = null;
         Item item = stack.getItem();
-        if (!(item instanceof ItemBlock)) return;
-        Block block = ((ItemBlock) item).getBlock();
-        blockState = block.getStateFromMeta(stack.getMetadata());
+        blockState = item instanceof ItemBlock ? ((ItemBlock) item).getBlock().getStateFromMeta(stack.getMetadata()) : null;
         teleporter.markAndNotifyBlock();
     }
 
