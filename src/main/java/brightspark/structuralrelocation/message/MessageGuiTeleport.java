@@ -1,6 +1,7 @@
 package brightspark.structuralrelocation.message;
 
 import brightspark.structuralrelocation.StructuralRelocation;
+import brightspark.structuralrelocation.gui.ContainerTeleporter;
 import brightspark.structuralrelocation.tileentity.AbstractTileTeleporter;
 import brightspark.structuralrelocation.tileentity.TileAreaTeleporter;
 import io.netty.buffer.ByteBuf;
@@ -62,6 +63,18 @@ public class MessageGuiTeleport implements IMessage
                 if(player == null)
                 {
                     StructuralRelocation.LOGGER.warn("Player could not be found when trying to click teleporter GUI button. UUID: " + message.playerUUID.toString());
+                    return;
+                }
+
+                if (!(player.openContainer instanceof ContainerTeleporter))
+                {
+                    StructuralRelocation.LOGGER.warn("Player does not have the teleporter GUI open. UUID: " + message.playerUUID.toString());
+                    return;
+                }
+
+                if (!player.openContainer.canInteractWith(player))
+                {
+                    StructuralRelocation.LOGGER.warn("Player can't interact with open teleporter GUI. UUID: " + message.playerUUID.toString());
                     return;
                 }
 
