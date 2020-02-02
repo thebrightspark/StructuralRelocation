@@ -62,7 +62,12 @@ public class InventoryCamo implements IInventory {
 
     @Override
     public void setInventorySlotContents(int index, ItemStack stack) {
-        this.stack = stack;
+        if (stack.isEmpty())
+            this.stack = ItemStack.EMPTY;
+        else {
+            this.stack = stack.copy();
+            this.stack.setCount(1);
+        }
         updateBlockState();
     }
 

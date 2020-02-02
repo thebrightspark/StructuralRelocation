@@ -13,9 +13,11 @@ import brightspark.structuralrelocation.util.CommonUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.inventory.ClickType;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IContainerListener;
 import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -123,6 +125,42 @@ public class ContainerTeleporter extends Container
             teleporter.setEnergy(data);
         else
             StructuralRelocation.LOGGER.warn("Unhandled client container data for ID " + id + "!");
+    }
+
+    @Override
+    public ItemStack slotClick(int slotId, int dragType, ClickType clickTypeIn, EntityPlayer player) {
+        if (slotId == 0 && (clickTypeIn == ClickType.PICKUP || clickTypeIn == ClickType.QUICK_MOVE)) {
+            Slot slot = inventorySlots.get(slotId);
+            if (slot instanceof SlotCamo) {
+                ItemStack heldStack = player.inventory.getItemStack();
+                if (heldStack.isEmpty())
+                    slot.putStack(ItemStack.EMPTY);
+                else if (slot.isItemValid(heldStack)) {
+                    switch (clickTypeIn) {
+                        case PICKUP:
+                            slot.putStack(heldStack.isEmpty() ? ItemStack.EMPTY : heldStack.copy());
+                            break;
+                        case QUICK_MOVE:
+                            slot.putStack(ItemStack.EMPTY);
+                    }
+                }
+                return ItemStack.EMPTY;
+            }
+        }
+        return super.slotClick(slotId, dragType, clickTypeIn, player);
+    }
+
+    @Override
+    public ItemStack transferStackInSlot(EntityPlayer playerIn, int index) {
+        if (index != 0) {
+            Slot slot = inventorySlots.get(0);
+            if (slot instanceof SlotCamo) {
+                ItemStack stack = inventorySlots.get(index).getStack();
+                if (slot.isItemValid(stack))
+                    slot.putStack(stack);
+            }
+        }
+        return ItemStack.EMPTY;
     }
 
     @SideOnly(Side.CLIENT)
