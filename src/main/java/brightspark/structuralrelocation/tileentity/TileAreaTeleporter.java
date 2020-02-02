@@ -117,10 +117,8 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
                     lastBlockInTheWay = checkPos;
                     if(player != null)
                     {
-                        player.sendMessage(new TextComponentString("Target area is not clear!\n" +
-                            "Position 1: " + destinationStart.toString() + "\n" +
-                            "Position 2: " + destinationEnd.toString() + "\n" +
-                            "Found block ").appendSibling(new TextComponentTranslation(targetDim.getBlockState(checkPos).getBlock().getTranslationKey() + ".name"))
+                        sendMessageToPlayer(new TextComponentString(String.format("Target area is not clear!\nPosition 1: %s\nPosition 2: %s\nFound block ", destinationStart, destinationEnd))
+                            .appendSibling(new TextComponentTranslation(targetDim.getBlockState(checkPos).getBlock().getTranslationKey() + ".name"))
                             .appendText(" at " + checkPos.toString()));
                     }
                     //Update client teleporter so the Debugger item can be used
@@ -130,12 +128,7 @@ public class TileAreaTeleporter extends AbstractTileTeleporter implements ITicka
                     return false;
                 case WAIT:
                     if(player != null)
-                    {
-                        player.sendMessage(new TextComponentString("Target area is not all loaded!\n" +
-                            "Position 1: " + destinationStart.toString() + "\n" +
-                            "Position 2: " + destinationEnd.toString() + "\n" +
-                            "Found block position not loaded: " + checkPos.toString()));
-                    }
+                        sendMessageToPlayer(new TextComponentString(String.format("Target area is not all loaded!\nPosition 1: %s\nPosition 2: %s\nFound block position not loaded: %s", destinationStart, destinationEnd, checkPos)));
                     if(SRConfig.server.debugTeleportMessages)
                         StructuralRelocation.LOGGER.info("Can not teleport. Destination area contains an unloaded chunk at block pos " + checkPos.toString() + " in dimension " + target.dimensionId);
                     return false;

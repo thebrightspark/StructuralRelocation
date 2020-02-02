@@ -19,6 +19,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.MinecraftForge;
@@ -43,6 +44,7 @@ public abstract class AbstractTileTeleporter extends TileEntity
     protected int waitTicks = 0;
     public SREnergyStorage energy;
     public InventoryCamo camoInv = new InventoryCamo(this);
+    public boolean chatWarnings = true;
 
     public AbstractTileTeleporter()
     {
@@ -395,6 +397,16 @@ public abstract class AbstractTileTeleporter extends TileEntity
         }
     }
 
+    protected void sendMessageToPlayer(ITextComponent text)
+    {
+        if (chatWarnings)
+        {
+            EntityPlayer player = getLastPlayer();
+            if (player != null)
+                player.sendMessage(text);
+        }
+    }
+
     @Override
     public boolean hasCapability(Capability<?> capability, EnumFacing facing)
     {
@@ -420,6 +432,7 @@ public abstract class AbstractTileTeleporter extends TileEntity
         isCopying = nbt.getBoolean("isCopying");
         isPowered = nbt.getBoolean("isPowered");
         camoInv.setInventorySlotContents(0, new ItemStack(nbt.getCompoundTag("camo")));
+        chatWarnings = nbt.getBoolean("chatWarnings");
     }
 
     @Override
@@ -431,6 +444,7 @@ public abstract class AbstractTileTeleporter extends TileEntity
         nbt.setBoolean("isCopying", isCopying);
         nbt.setBoolean("isPowered", isPowered);
         nbt.setTag("camo", camoInv.getStackInSlot(0).writeToNBT(new NBTTagCompound()));
+        nbt.setBoolean("chatWarnings", chatWarnings);
 
         return super.writeToNBT(nbt);
     }

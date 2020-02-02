@@ -2,6 +2,7 @@ package brightspark.structuralrelocation.message;
 
 import brightspark.structuralrelocation.StructuralRelocation;
 import brightspark.structuralrelocation.gui.ContainerTeleporter;
+import brightspark.structuralrelocation.gui.GuiButtonIds;
 import brightspark.structuralrelocation.tileentity.AbstractTileTeleporter;
 import brightspark.structuralrelocation.tileentity.TileAreaTeleporter;
 import io.netty.buffer.ByteBuf;
@@ -88,16 +89,19 @@ public class MessageGuiTeleport implements IMessage
 
                 switch(message.buttonId)
                 {
-                    case 0: //Teleport
+                    case GuiButtonIds.CHECKBOX_ID:
+                        teleporter.chatWarnings = !teleporter.chatWarnings;
+                        break;
+                    case GuiButtonIds.BUTTON_TELEPORT_ID:
                         teleporter.teleport(message.playerUUID);
                         break;
-                    case 1: //Copy
+                    case GuiButtonIds.BUTTON_COPY_ID:
                         if(player.capabilities.isCreativeMode)
                             teleporter.copy(message.playerUUID);
                         else
                             player.sendMessage(new TextComponentString("You must be in creative to copy blocks at the moment!"));
                         break;
-                    case 2: //Stop
+                    case GuiButtonIds.BUTTON_STOP_ID:
                         if(teleporter instanceof TileAreaTeleporter)
                             ((TileAreaTeleporter) teleporter).stop();
                         break;

@@ -24,13 +24,14 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class ContainerTeleporter extends Container
 {
-    protected AbstractTileTeleporter teleporter;
-    protected int cachedEnergy = -1;
-    protected Location cachedLocation;
-    protected LocationArea cachedArea;
-    protected BlockPos cachedCurBlock;
-    protected int invStartX = 8;
-    protected int invStartY = 93;
+    private AbstractTileTeleporter teleporter;
+    private int cachedEnergy = -1;
+    private Location cachedLocation;
+    private LocationArea cachedArea;
+    private BlockPos cachedCurBlock;
+    private boolean cachedChatWarnings;
+    private int invStartX = 8;
+    private int invStartY = 93;
 
     public ContainerTeleporter(InventoryPlayer invPlayer, AbstractTileTeleporter teleporter)
     {
@@ -50,7 +51,7 @@ public class ContainerTeleporter extends Container
      */
     protected void addSlots()
     {
-        addSlotToContainer(new SlotCamo(teleporter.camoInv, 156, 4));
+        addSlotToContainer(new SlotCamo(teleporter.camoInv, 155, 5));
     }
 
     @Override
@@ -80,6 +81,13 @@ public class ContainerTeleporter extends Container
             {
                 cachedEnergy = energy;
                 CommonUtils.NETWORK.sendTo(new MessageUpdateClientContainer(0, energy), player);
+            }
+
+            //Chat Warnings
+            if(teleporter.chatWarnings != cachedChatWarnings)
+            {
+                cachedChatWarnings = teleporter.chatWarnings;
+                listener.sendWindowProperty(this, 1, cachedChatWarnings ? 1 : 0);
             }
 
             //Locations
@@ -121,10 +129,17 @@ public class ContainerTeleporter extends Container
     @SideOnly(Side.CLIENT)
     public void updateProgressBar(int id, int data)
     {
-        if(id == 0)
-            teleporter.setEnergy(data);
-        else
-            StructuralRelocation.LOGGER.warn("Unhandled client container data for ID " + id + "!");
+        switch (id)
+        {
+            case 0:
+                teleporter.setEnergy(data);
+                break;
+            case 1:
+                teleporter.chatWarnings = data == 1;
+                break;
+            default:
+                StructuralRelocation.LOGGER.warn("Unhandled client container data for ID {}!", id);
+        }
     }
 
     @Override

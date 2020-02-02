@@ -19,16 +19,22 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraftforge.fml.client.config.GuiCheckBox;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static brightspark.structuralrelocation.gui.GuiButtonIds.*;
+
 public class GuiTeleporter extends GuiContainer
 {
-    public ResourceLocation guiImage = new ResourceLocation(StructuralRelocation.MOD_ID, StructuralRelocation.GUI_TEXTURE_DIR + "teleporter.png");
-    protected int textColour = 4210752;
+    private static final int iconY = 20;
+    private static final int buttonY = 50;
+    private static final int textColour = 4210752;
+    private static final ResourceLocation guiImage = new ResourceLocation(StructuralRelocation.MOD_ID, StructuralRelocation.GUI_TEXTURE_DIR + "teleporter.png");
+
     public AbstractTileTeleporter teleporter;
     protected boolean isAreaTeleporter;
     protected final Rectangle energyBar = new Rectangle(11, 16, 10, 63);
@@ -45,6 +51,13 @@ public class GuiTeleporter extends GuiContainer
         ySize = 175;
     }
 
+    @Override
+    protected <T extends GuiButton> T addButton(T button) {
+        button.x += guiLeft;
+        button.y += guiTop;
+        return super.addButton(button);
+    }
+
     /**
      * Adds the buttons (and other controls) to the screen in question. Called when the GUI is displayed and when the
      * window resizes, the buttonList is cleared beforehand.
@@ -54,16 +67,18 @@ public class GuiTeleporter extends GuiContainer
     {
         super.initGui();
 
+        addButton(new GuiCheckBox(CHECKBOX_ID, 24, 69, "Chat Warnings", teleporter.chatWarnings));
+
         if(isAreaTeleporter)
         {
-            buttonList.add(new Button(25, 57, "Teleport"));
-            buttonList.add(new Button(74, 57, "Copy"));
-            buttonList.add(new Button(123, 57, "Stop", false));
+            addButton(new Button(BUTTON_TELEPORT_ID, 25, buttonY, "Teleport"));
+            addButton(new Button(BUTTON_COPY_ID, 74, buttonY, "Copy"));
+            addButton(new Button(BUTTON_STOP_ID, 123, buttonY, "Stop", false));
         }
         else
         {
-            buttonList.add(new Button(41, 57, "Teleport"));
-            buttonList.add(new Button(107, 57, "Copy"));
+            addButton(new Button(BUTTON_TELEPORT_ID, 41, buttonY, "Teleport"));
+            addButton(new Button(BUTTON_COPY_ID, 107, buttonY, "Copy"));
         }
 
         /*
@@ -74,14 +89,14 @@ public class GuiTeleporter extends GuiContainer
          */
         if(isAreaTeleporter)
         {
-            iconList.add(iconTarget = new Icon(46, 23, 0, TeleporterStatus.OFF));
-            iconList.add(iconArea = new Icon(87, 23, 1, TeleporterStatus.OFF));
-            iconList.add(iconStatus = new Icon(128, 23, 2, TeleporterStatus.OFF));
+            iconList.add(iconTarget = new Icon(46, iconY, 0, TeleporterStatus.OFF));
+            iconList.add(iconArea = new Icon(87, iconY, 1, TeleporterStatus.OFF));
+            iconList.add(iconStatus = new Icon(128, iconY, 2, TeleporterStatus.OFF));
         }
         else
         {
-            iconList.add(iconTarget = new Icon(66, 23, 0, TeleporterStatus.OFF));
-            iconList.add(iconStatus = new Icon(108, 23, 2, TeleporterStatus.OFF));
+            iconList.add(iconTarget = new Icon(66, iconY, 0, TeleporterStatus.OFF));
+            iconList.add(iconStatus = new Icon(108, iconY, 2, TeleporterStatus.OFF));
         }
     }
 
@@ -196,13 +211,13 @@ public class GuiTeleporter extends GuiContainer
         {
             switch(button.id)
             {
-                case 0: //Teleport
+                case BUTTON_TELEPORT_ID:
                     button.enabled = !isActive && hasEnergy && hasTargets;
                     break;
-                case 1: //Copy
+                case BUTTON_COPY_ID:
                     button.enabled = mc.player.capabilities.isCreativeMode && !isActive && hasEnergy && hasTargets;
                     break;
-                case 2: //Stop
+                case BUTTON_STOP_ID:
                     button.enabled = isActive;
             }
         }
@@ -238,7 +253,7 @@ public class GuiTeleporter extends GuiContainer
 
         mouseX -= guiLeft;
         mouseY -= guiTop;
-        List<String> tooltip = new ArrayList<String>();
+        List<String> tooltip = new ArrayList<>();
         drawTooltips(tooltip, mouseX, mouseY);
         if(!tooltip.isEmpty())
             drawHoveringText(tooltip, mouseX, mouseY);
@@ -274,33 +289,26 @@ public class GuiTeleporter extends GuiContainer
         CommonUtils.NETWORK.sendToServer(new MessageGuiTeleport(button.id, mc.player, teleporter.getPos()));
     }
 
-    public void drawCenteredString(FontRenderer fontRendererIn, String text, int y, int color)
-    {
-        fontRendererIn.drawString(text, (xSize / 2) - (fontRendererIn.getStringWidth(text) / 2), y, color);
-    }
-
     @Override
     public void drawCenteredString(FontRenderer fontRendererIn, String text, int x, int y, int color)
     {
         fontRendererIn.drawString(text, x - (fontRendererIn.getStringWidth(text) / 2), y, color);
     }
 
-    private int buttonId = 0;
-
     protected class Button extends GuiButton
     {
         private final int iconX, iconY;
 
-        public Button(int x, int y, String buttonText)
+        public Button(int id, int x, int y, String buttonText)
         {
-            super(buttonId++, guiLeft + x, guiTop + y, 46, 15, buttonText);
+            super(id, x, y, 46, 15, buttonText);
             iconX = 186;
             iconY = 0;
         }
 
-        public Button(int x, int y, String buttonText, boolean enabled)
+        public Button(int id, int x, int y, String buttonText, boolean enabled)
         {
-            this(x, y, buttonText);
+            this(id, x, y, buttonText);
             this.enabled = enabled;
         }
 
@@ -341,7 +349,7 @@ public class GuiTeleporter extends GuiContainer
         private int iconX = 186;
         private int iconY = 30;
         private TeleporterStatus status = TeleporterStatus.ON;
-        private List<String> tooltip = new ArrayList<String>();
+        private List<String> tooltip = new ArrayList<>();
 
         public Icon(int posX, int posY, int iconId)
         {
