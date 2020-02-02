@@ -1,5 +1,6 @@
 package brightspark.structuralrelocation.tileentity;
 
+import brightspark.structuralrelocation.block.AbstractBlockTeleporter;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
@@ -89,7 +90,7 @@ public class InventoryCamo implements IInventory {
         Item item = stack.getItem();
         if (!(item instanceof ItemBlock)) return false;
         Block block = ((ItemBlock) stack.getItem()).getBlock();
-        return block.isFullCube(block.getDefaultState());
+        return !(block instanceof AbstractBlockTeleporter) && block.isFullCube(block.getDefaultState());
     }
 
     @Override
